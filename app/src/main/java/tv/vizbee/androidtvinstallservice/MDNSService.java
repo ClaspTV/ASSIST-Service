@@ -4,11 +4,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
-import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 public class MDNSService extends Service {
@@ -16,17 +17,10 @@ public class MDNSService extends Service {
     private static final String TAG = "MDNSService";
 
     private static final String SERVICE_TYPE = "_vizbee._tcp.";
+    private static final String SERVICE_NAME = "Vizbee Android TV Install Service";
 
     private NsdManager mNsdManager;
     private NsdManager.RegistrationListener mRegistrationListener;
-
-    private final IBinder mBinder = new LocalBinder();
-
-    public class LocalBinder extends Binder {
-        public MDNSService getService() {
-            return MDNSService.this;
-        }
-    }
 
     @Override
     public void onCreate() {
@@ -45,7 +39,7 @@ public class MDNSService extends Service {
         Log.d(TAG, "onDestroy");
 
         // NanoHTTPD will use a default port number (usually 8080)
-        HttpServer server = null;
+        HttpServer server;
         try {
             int port = getAvailablePort();
             Log.d(TAG, "starting server on port " + port);
@@ -59,15 +53,15 @@ public class MDNSService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind");
-        return mBinder;
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     public void registerService(int port) throws IOException {
@@ -76,7 +70,7 @@ public class MDNSService extends Service {
         ServerSocket serverSocket = new ServerSocket(port);
         int localPort = serverSocket.getLocalPort();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName("Vizbee Android TV Install Service");
+        serviceInfo.setServiceName(SERVICE_NAME);
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setPort(localPort);
 
@@ -116,11 +110,8 @@ public class MDNSService extends Service {
     }
 
     public static int getAvailablePort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        try {
+        try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
-        } finally {
-            socket.close();
         }
     }
 }

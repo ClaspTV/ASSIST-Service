@@ -7,22 +7,24 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 
-import fi.iki.elonen.NanoHTTPD;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import fi.iki.elonen.NanoHTTPD;
 
 public class HttpServer extends NanoHTTPD {
 
     private static final String TAG = "HttpServer";
 
-    private Context context = null;
+    private Context context;
 
     public HttpServer(Context applicationContext, int availablePort) {
-        super(availablePort);
+        super(33585); // TODO: change it available port
 
         context = applicationContext;
     }
@@ -33,64 +35,93 @@ public class HttpServer extends NanoHTTPD {
         if (session.getMethod() == Method.GET) {
 
             Log.i(TAG, "Handle GET method");
+            return handleGetRequest(session);
 
-            // Handle GET request
-            String uri = session.getUri();
-            Log.i(TAG, "path " + uri);
-            Map<String, String> params = session.getParms();
-            Log.i(TAG, "GET params" + params);
-
-            if ("/info".equals(uri)) {
-                // Serve the service info
-                // 1. url and port where it can be reachable
-                // 2. different get methods and query params that this server serves
-                return newFixedLengthResponse(""); // TODO:
-            } else if ("/appStatus".equals(uri)) {
-
-                final String appPackageName = session.getParms().get("packageName");
-
-                // Serve the app status
-                // 1. AppNotInstalled
-                if(!isAppInstalled(appPackageName)) {
-                    return newFixedLengthResponse("AppNotInstalled");
-                }
-                // 2. AppNotRunning
-                if(!isAppRunning(appPackageName)) {
-                    return newFixedLengthResponse("AppNotRunning");
-                }
-                // 3. AppInForeGround
-                if(!isAppInForeground(appPackageName)) {
-                    return newFixedLengthResponse("AppInForeGround");
-                }
-                // 4. AppInForeGround
-                return newFixedLengthResponse("AppInBackGround");
-            } else {
-                // Serve a 404 response for unknown paths
-                return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "404 Not Found");
-            }
-
-//
-//            // open PlayStore page for the specified package name only
-//            // if the application is not installed
-//            if (!isAppInstalled(appPackageName)) {
-//                openAppStorePageForAnApp(appPackageName);
-//            }
-//
-//            return newFixedLengthResponse("Received GET request");
         } else if (session.getMethod() == Method.POST) {
-            // Handle POST request
-//            try {
-//                session.parseBody();
-//                String requestBody = session.getQueryParameterString();
-//                // ...
-//                return newFixedLengthResponse("Received POST request with body: " + requestBody);
-//            } catch (IOException | ResponseException e) {
-//                Log.e(TAG, "Error parsing request body", e);
-//                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error parsing request body");
-//            }
+
+            Log.i(TAG, "Handle POST method");
+            return handlePostRequest(session);
         }
 
         return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not found");
+    }
+
+    private Response handleGetRequest(IHTTPSession session) {
+
+        String uri = session.getUri();
+        Log.i(TAG, "path " + uri);
+        Map<String, String> params = session.getParms();
+        Log.i(TAG, "GET params" + params);
+
+        if ("/info".equals(uri)) {
+
+            // Serve the service info
+            // 1. url and port where it can be reachable
+            // 2. different get methods and query params that this server serves
+            return newFixedLengthResponse(""); // TODO:
+        } else if ("/appStatus".equals(uri)) {
+
+            final String appPackageName = session.getParms().get("packageName");
+
+            // Serve the app status
+            // 1. AppNotInstalled
+            if(!isAppInstalled(appPackageName)) {
+                return newFixedLengthResponse("AppNotInstalled");
+            }
+            // 2. AppNotRunning
+            if(!isAppRunning(appPackageName)) {
+                return newFixedLengthResponse("AppNotRunning");
+            }
+            // 3. AppRunningInForeGround
+            if(!isAppInForeground(appPackageName)) {
+                return newFixedLengthResponse("AppRunningInForeGround");
+            }
+            // 4. AppRunningInBackGround
+            return newFixedLengthResponse("AppRunningInBackGround");
+        } else {
+            // Serve a 404 response for unknown paths
+            return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "404 Not Found");
+        }
+    }
+
+    private Response handlePostRequest(IHTTPSession session) {
+
+        try {
+            Map<String, String> body = new HashMap<>();
+            session.parseBody(body);
+            String requestBody = session.getQueryParameterString();
+            Log.i(TAG, "Received post request with body " + body);
+
+            String uri = session.getUri();
+            JSONObject jsonPayload = null;
+            String appPackageName = null;
+            if (null != body.get("postData")) {
+
+                // get JSON payload from request body
+                try {
+                    jsonPayload = new JSONObject(body.get("postData"));
+                    appPackageName = jsonPayload.getString("packageName");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if ("/launchPlayStore".equals(uri)) {
+
+                // open PlayStore page for the specified package name only
+                // if the application is not installed
+                if (!isAppInstalled(appPackageName)) {
+                    openAppStorePageForAnApp(appPackageName);
+                }
+                return newFixedLengthResponse("Success");
+            } else if ("/launchApp".equals(uri)) {
+
+            }
+            return newFixedLengthResponse("Received POST request with body: " + requestBody);
+        } catch (IOException | ResponseException e) {
+            Log.e(TAG, "Error parsing request body", e);
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error parsing request body");
+        }
     }
 
     private boolean isAppInstalled(String packageName) {
@@ -102,27 +133,33 @@ public class HttpServer extends NanoHTTPD {
          Note that the GET_ACTIVITIES flag passed to getPackageInfo() is used to retrieve information
          about the activities defined in the package. We can use other flags, such as GET_SERVICES,
          GET_RECEIVERS, and GET_PROVIDERS, to retrieve information about other components defined in the package.
+         NOTE: https://developer.android.com/training/package-visibility
          */
         PackageManager pm = context.getPackageManager();
         try {
             pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            Log.i(TAG, "AppInstalled for the package " + packageName);
+            Log.i(TAG, "App " + packageName + " installed");
            return true;
         } catch (PackageManager.NameNotFoundException e) {
 
             // the package is not installed
-            Log.i(TAG, "App not installed for the package " + packageName);
+            Log.i(TAG, "App " + packageName + " not installed");
             return false;
         }
     }
 
     private void openAppStorePageForAnApp(String packageName) {
+
         try {
+
+            Log.i(TAG, "Opening playstore page with market:// for the package " + packageName);
             Uri uri = Uri.parse("market://details?id=" + packageName);
             Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
             appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(appStoreIntent);
         } catch (android.content.ActivityNotFoundException anfe) {
+
+            Log.i(TAG, "Opening playstore page with https:// for the package " + packageName);
             Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
             Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
             appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -135,7 +172,13 @@ public class HttpServer extends NanoHTTPD {
     each of which represents a currently running process on the device.
     Iterate over this list and check the processName field of each
     RunningAppProcessInfo object to determine whether the app is running or not.
+
+    NOTE: Accessing information about other apps' tasks and processes without requiring
+    the user's permission is not possible on Android for security and privacy reasons.
+    Android's permission model is designed to protect user data and ensure
+    that users have control over which apps can access their data.
      */
+    // TODO: This is not working due to Android restrictions, find any alternative or hacky way.
     private boolean isAppRunning(String packageName) {
 
         boolean isAppRunning = false;
@@ -146,10 +189,12 @@ public class HttpServer extends NanoHTTPD {
             if (processInfo.processName.equals(packageName)) {
 
                 // The app is running
+                Log.i(TAG, "App " + packageName + " running");
                 isAppRunning = true;
                 break;
             }
         }
+        Log.i(TAG, "App " + packageName + " not running");
         return isAppRunning;
     }
 
@@ -161,6 +206,7 @@ public class HttpServer extends NanoHTTPD {
     If the importance is any other value, it means that the app is running in the background
     (i.e., the app is not visible to the user or not currently being used).
      */
+    // TODO: This is not working due to Android restrictions, find any alternative or hacky way.
     private boolean isAppInForeground(String packageName) {
 
         // app is running in the background
