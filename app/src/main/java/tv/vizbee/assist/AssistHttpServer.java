@@ -1,11 +1,15 @@
-package tv.vizbee.androidtvinstallservice;
+package tv.vizbee.assist;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.hardware.input.InputManager;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,14 +21,14 @@ import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
-public class HttpServer extends NanoHTTPD {
+public class AssistHttpServer extends NanoHTTPD {
 
-    private static final String TAG = "HttpServer";
+    private static final String TAG = "AliasHttpServer";
 
     private Context context;
 
-    public HttpServer(Context applicationContext, int availablePort) {
-        super(33585); // TODO: change it available port
+    public AssistHttpServer(Context applicationContext, int availablePort) {
+        super(availablePort); // TODO: change it available port
 
         context = applicationContext;
     }
@@ -115,7 +119,7 @@ public class HttpServer extends NanoHTTPD {
                 }
                 return newFixedLengthResponse("Success");
             } else if ("/launchApp".equals(uri)) {
-
+                launchApp(appPackageName);
             }
             return newFixedLengthResponse("Received POST request with body: " + requestBody);
         } catch (IOException | ResponseException e) {
@@ -128,42 +132,71 @@ public class HttpServer extends NanoHTTPD {
 
         /*
          If the package is installed, the getPackageInfo() method will return a PackageInfo object,
-         and the the `try` block will continue to execute. If the package is not installed,
+         and the `try` block will continue to execute. If the package is not installed,
          the getPackageInfo() method will throw a NameNotFoundException, and the code inside the catch block will execute.
          Note that the GET_ACTIVITIES flag passed to getPackageInfo() is used to retrieve information
          about the activities defined in the package. We can use other flags, such as GET_SERVICES,
          GET_RECEIVERS, and GET_PROVIDERS, to retrieve information about other components defined in the package.
          NOTE: https://developer.android.com/training/package-visibility
          */
-        PackageManager pm = context.getPackageManager();
-        try {
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            Log.i(TAG, "App " + packageName + " installed");
-           return true;
-        } catch (PackageManager.NameNotFoundException e) {
+//        PackageManager pm = context.getPackageManager();
+//        try {
+//            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+//            Log.i(TAG, "App " + packageName + " installed");
+//           return true;
+//        } catch (PackageManager.NameNotFoundException e) {
+//
+//            // the package is not installed
+//            Log.i(TAG, "App " + packageName + " not installed");
+//            return false;
+//        }
 
-            // the package is not installed
-            Log.i(TAG, "App " + packageName + " not installed");
-            return false;
+        PackageManager pm = context.getPackageManager();
+        List<PackageInfo> packages = pm.getInstalledPackages(0);
+
+        for (PackageInfo packageInfo : packages) {
+            Log.d(TAG, "Package name: " + packageInfo.packageName);
+            if (packageInfo.packageName.equals(packageName)) {
+                Log.i(TAG, "App " + packageName + " installed");
+                return true;
+            }
         }
+
+        Log.i(TAG, "App " + packageName + " not installed");
+        return false;
     }
 
     private void openAppStorePageForAnApp(String packageName) {
 
-        try {
+       try {
 
-            Log.i(TAG, "Opening playstore page with market:// for the package " + packageName);
-            Uri uri = Uri.parse("market://details?id=" + packageName);
-            Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
-            appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(appStoreIntent);
-        } catch (android.content.ActivityNotFoundException anfe) {
+           Log.i(TAG, "Opening playstore page with market:// for the package " + packageName);
+           Uri uri = Uri.parse("market://details?id=" + packageName);
+           Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
+           appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+           context.startActivity(appStoreIntent);
+       } catch (android.content.ActivityNotFoundException anfe) {
 
             Log.i(TAG, "Opening playstore page with https:// for the package " + packageName);
             Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
             Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
             appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(appStoreIntent);
+       }
+    }
+
+    private void sendInstallConfirmationKeyEvent() {
+        InputManager mInputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        long now = SystemClock.uptimeMillis();
+        KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0);
+        KeyEvent upEvent = new KeyEvent(now, now, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0);
+    }
+
+    private void launchApp(String packageName) {
+
+        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        if (launchIntent != null) {
+            context.startActivity(launchIntent); // Launch the app
         }
     }
 

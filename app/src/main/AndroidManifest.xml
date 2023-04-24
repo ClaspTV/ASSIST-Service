@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="tv.vizbee.androidtvinstallservice">
+    package="tv.vizbee.assist">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!--  -->
+     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!--    Permission only availbale to System apps/services. Requred testing -->
+    <uses-permission android:name="android.permission.INJECT_EVENTS"
+        tools:ignore="ProtectedPermissions" />
 
-    <uses-permission android:name="android.permission.INTERACT_ACROSS_APPS" />
+    <!-- <uses-permission android:name="android.permission.INTERACT_ACROSS_APPS" /> -->
 
-    <!--  On Android 10 and earlier, apps could query the full list of installed apps on the system
+    <!--
+    On Android 10 and earlier, apps could query the full list of installed apps on the system
     using methods like queryIntentActivities(). In most cases, this is far broader access than
     is necessary for an app to implement its functionality. With our ongoing focus on privacy,
     we’re introducing changes on how apps can query and interact with other installed apps on the
@@ -24,39 +30,49 @@
     https://developer.android.com/training/package-visibility/use-cases
     https://medium.com/androiddevelopers/package-visibility-in-android-11-cc857f221cd9
     -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-
-    <uses-permission android:name="android.permission.REAL_GET_TASKS"
-        tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label=""
+        android:persistent="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        tools:targetApi="31" >
+        tools:targetApi="31">
+         <activity
+             android:name="tv.vizbee.assist.MainActivity"
+             android:exported="true"
+             android:theme="@android:style/Theme.Translucent">
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-        </activity>
 
-        <receiver android:name=".BootReceiver"
+         </activity>
+
+        <receiver
+            android:name="tv.vizbee.assist.BootReceiver"
+            android:enabled="true"
             android:exported="true">
             <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
-        <service android:name=".MDNSService"/>
+        <service
+            android:name="tv.vizbee.assist.AssistMdnsService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":AliasProcess" />
     </application>
 
 </manifest>

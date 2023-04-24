@@ -1,4 +1,4 @@
-package tv.vizbee.androidtvinstallservice;
+package tv.vizbee.assist;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,21 +6,24 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
-public class MDNSService extends Service {
+public class AssistMdnsService extends Service {
 
-    private static final String TAG = "MDNSService";
+    private static final String TAG = "AliasMdnsServ";
 
-    private static final String SERVICE_TYPE = "_vizbee._tcp.";
-    private static final String SERVICE_NAME = "Vizbee Android TV Install Service";
+    private static final String ALIAS_MDNS_SERVICE_TYPE = "_vizbee-alias._tcp.";
+    private static final String ALIAS_MDNS_SERVICE_NAME = "AndroidTV Launch Install Service";
 
     private NsdManager mNsdManager;
     private NsdManager.RegistrationListener mRegistrationListener;
+
+    private AssistHttpServer server;
 
     @Override
     public void onCreate() {
@@ -36,14 +39,15 @@ public class MDNSService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onDestroy");
+        Log.d(TAG, "onStartCommand");
+
+        Toast.makeText(getApplicationContext(), "Started MDNS service", Toast.LENGTH_LONG).show();
 
         // NanoHTTPD will use a default port number (usually 8080)
-        HttpServer server;
         try {
             int port = getAvailablePort();
             Log.d(TAG, "starting server on port " + port);
-            server = new HttpServer(this.getApplicationContext(), port);
+            server = new AssistHttpServer(this.getApplicationContext(), port);
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,6 +60,8 @@ public class MDNSService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+
+        server.stop();
     }
 
     @Nullable
@@ -70,8 +76,8 @@ public class MDNSService extends Service {
         ServerSocket serverSocket = new ServerSocket(port);
         int localPort = serverSocket.getLocalPort();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(SERVICE_NAME);
-        serviceInfo.setServiceType(SERVICE_TYPE);
+        serviceInfo.setServiceName(ALIAS_MDNS_SERVICE_NAME);
+        serviceInfo.setServiceType(ALIAS_MDNS_SERVICE_TYPE);
         serviceInfo.setPort(localPort);
 
         mRegistrationListener = createRegistrationListener();

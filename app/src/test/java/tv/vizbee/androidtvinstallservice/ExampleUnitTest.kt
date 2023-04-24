@@ -1,4 +1,4 @@
-package tv.vizbee.androidtvinstallservice
+package tv.vizbee.assist
 
 import org.junit.Test
 

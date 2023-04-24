@@ -1,4 +1,4 @@
-package tv.vizbee.androidtvinstallservice
+package tv.vizbee.assist
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("tv.vizbee.androidtvinstallservice", appContext.packageName)
+        assertEquals("tv.vizbee.alias", appContext.packageName)
     }
 }
