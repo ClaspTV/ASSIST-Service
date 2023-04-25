@@ -15,10 +15,10 @@ import java.net.ServerSocket;
 
 public class AssistMdnsService extends Service {
 
-    private static final String TAG = "AliasMdnsServ";
+    private static final String TAG = "AssistMdnsServ";
 
-    private static final String ALIAS_MDNS_SERVICE_TYPE = "_vizbee-alias._tcp.";
-    private static final String ALIAS_MDNS_SERVICE_NAME = "AndroidTV Launch Install Service";
+    private static final String ASSIST_MDNS_SERVICE_TYPE = "_vzb-assist._tcp.";
+    private static final String ASSIST_MDNS_SERVICE_NAME = "Android TV Second Screen Install Service";
 
     private NsdManager mNsdManager;
     private NsdManager.RegistrationListener mRegistrationListener;
@@ -76,8 +76,8 @@ public class AssistMdnsService extends Service {
         ServerSocket serverSocket = new ServerSocket(port);
         int localPort = serverSocket.getLocalPort();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(ALIAS_MDNS_SERVICE_NAME);
-        serviceInfo.setServiceType(ALIAS_MDNS_SERVICE_TYPE);
+        serviceInfo.setServiceName(ASSIST_MDNS_SERVICE_NAME);
+        serviceInfo.setServiceType(ASSIST_MDNS_SERVICE_TYPE);
         serviceInfo.setPort(localPort);
 
         mRegistrationListener = createRegistrationListener();

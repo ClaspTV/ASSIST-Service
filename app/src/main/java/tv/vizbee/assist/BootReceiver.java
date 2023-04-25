@@ -21,7 +21,7 @@ public class BootReceiver extends BroadcastReceiver {
 
             Toast.makeText(context, "Received Broadcast message with intent action ACTION_BOOT_COMPLETED", Toast.LENGTH_LONG).show();
 
-            Log.d(TAG, "onReceive ACTION_BOOT_COMPLETED - Starting AliasMdnsService Service");
+            Log.d(TAG, "onReceive ACTION_BOOT_COMPLETED - Starting AssistMdns Service");
             Intent serviceIntent = new Intent(context, AssistMdnsService.class);
             context.startService(serviceIntent);
         }

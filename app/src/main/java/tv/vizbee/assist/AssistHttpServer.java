@@ -1,20 +1,27 @@
 package tv.vizbee.assist;
 
 import android.app.ActivityManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
+import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.hardware.input.InputManager;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +30,15 @@ import fi.iki.elonen.NanoHTTPD;
 
 public class AssistHttpServer extends NanoHTTPD {
 
-    private static final String TAG = "AliasHttpServer";
+    private static final String TAG = "AssistHttpServer";
 
     private Context context;
 
+    private Boolean isAppReadyForUse = true;
+
     public AssistHttpServer(Context applicationContext, int availablePort) {
         super(availablePort); // TODO: change it available port
-
+        Toast.makeText(applicationContext, "Started AssistHttpServer on port" + availablePort, Toast.LENGTH_LONG).show();
         context = applicationContext;
     }
 
@@ -69,7 +78,7 @@ public class AssistHttpServer extends NanoHTTPD {
 
             // Serve the app status
             // 1. AppNotInstalled
-            if(!isAppInstalled(appPackageName)) {
+            if(!isAppInstalledAndReadyForUse(appPackageName)) {
                 return newFixedLengthResponse("AppNotInstalled");
             }
             // 2. AppNotRunning
@@ -114,7 +123,9 @@ public class AssistHttpServer extends NanoHTTPD {
 
                 // open PlayStore page for the specified package name only
                 // if the application is not installed
-                if (!isAppInstalled(appPackageName)) {
+                if (!isAppInstalledAndReadyForUse(appPackageName)) {
+
+                    registerForActionPackageAdded(appPackageName);
                     openAppStorePageForAnApp(appPackageName);
                 }
                 return newFixedLengthResponse("Success");
@@ -128,42 +139,121 @@ public class AssistHttpServer extends NanoHTTPD {
         }
     }
 
-    private boolean isAppInstalled(String packageName) {
+    private boolean isAppInstalledAndReadyForUse(String packageName) {
 
         /*
-         If the package is installed, the getPackageInfo() method will return a PackageInfo object,
-         and the `try` block will continue to execute. If the package is not installed,
-         the getPackageInfo() method will throw a NameNotFoundException, and the code inside the catch block will execute.
-         Note that the GET_ACTIVITIES flag passed to getPackageInfo() is used to retrieve information
-         about the activities defined in the package. We can use other flags, such as GET_SERVICES,
-         GET_RECEIVERS, and GET_PROVIDERS, to retrieve information about other components defined in the package.
-         NOTE: https://developer.android.com/training/package-visibility
-         */
-//        PackageManager pm = context.getPackageManager();
-//        try {
-//            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-//            Log.i(TAG, "App " + packageName + " installed");
-//           return true;
-//        } catch (PackageManager.NameNotFoundException e) {
-//
-//            // the package is not installed
-//            Log.i(TAG, "App " + packageName + " not installed");
-//            return false;
-//        }
+        NOTE: The installation process of an Android app involves 2 stages
+        1. Downloading the package
+        2. Installing the package
+        As soon as the package is downloaded, the package name will be added to the PackageManager
+        and then installation process will initiate the installation. So, we can't solely depend
+        on PackageManger to confirm that the is fully installed and ready to be used.
 
-        PackageManager pm = context.getPackageManager();
-        List<PackageInfo> packages = pm.getInstalledPackages(0);
+        To determine if the app is fully installed and ready to be used,
+        we can register a BroadcastReceiver to listen for the ACTION_PACKAGE_ADDED intent,
+        which is broadcasted by the system when a new package is added.
+        When the ACTION_PACKAGE_ADDED intent is received, we can check if the added package matches
+        the package name of the app. If it does, we can assume that the app has been fully installed and is ready to be used.
+        */
 
-        for (PackageInfo packageInfo : packages) {
-            Log.d(TAG, "Package name: " + packageInfo.packageName);
-            if (packageInfo.packageName.equals(packageName)) {
-                Log.i(TAG, "App " + packageName + " installed");
-                return true;
+        // Use PackageManager to get a list of installed applications
+        PackageManager packageManager = context.getPackageManager();
+        List<ApplicationInfo> installedApplications = packageManager.getInstalledApplications(PackageManager.GET_SERVICES);
+
+        // Check if the app is installed
+        boolean appInstalled = false;
+        for (ApplicationInfo appInfo : installedApplications) {
+            if (appInfo.packageName.equals(packageName)) {
+
+                // The app is installed
+                appInstalled = true;
+                break;
             }
         }
 
-        Log.i(TAG, "App " + packageName + " not installed");
-        return false;
+        Log.d(TAG, "App is installed: " + packageName);
+        return (appInstalled && isAppReadyForUse);
+    }
+
+    private void registerForActionPackageAdded(String packageName) throws IOException {
+
+        // Register a BroadcastReceiver to listen for package installation events
+        BroadcastReceiver packageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String addedPackageName = intent.getData().getSchemeSpecificPart();
+                if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
+
+                    // Package added
+                    Log.d(TAG, "Package added: " + addedPackageName);
+                    if (addedPackageName.equals(packageName)){
+                        isAppReadyForUse = true;
+                    }
+                } else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
+
+                    // Package removed
+                    Log.d(TAG, "Package removed: " + addedPackageName);
+                    if (addedPackageName.equals(packageName)){
+                        isAppReadyForUse = false;
+                    }
+                }
+            }
+        };
+
+        // Register the BroadcastReceiver
+
+        isAppReadyForUse = false;
+
+        IntentFilter packageFilter = new IntentFilter(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addDataScheme(packageName);
+        context.registerReceiver(packageReceiver, packageFilter);
+
+        // Create a PackageInstaller instance
+//        PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
+
+// Create a session parameters object
+//        PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
+//                PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+
+// Set the package name of the app you want to install
+//        params.setAppPackageName(packageName);
+
+// Register a session callback to monitor the installation progress
+//        packageInstaller.registerSessionCallback(new PackageInstaller.SessionCallback() {
+//            @Override
+//            public void onCreated(int sessionId) {
+//                // Session created
+//            }
+//
+//            @Override
+//            public void onBadgingChanged(int sessionId) {
+//                // Badging changed
+//            }
+//
+//            @Override
+//            public void onActiveChanged(int sessionId, boolean active) {
+//                // Active changed
+//            }
+//
+//            @Override
+//            public void onProgressChanged(int sessionId, float progress) {
+//                // Progress changed
+//            }
+//
+//            @Override
+//            public void onFinished(int sessionId, boolean success) {
+//                // Installation finished
+//                if (success) {
+//                    // The app is installed and ready to use
+//                    Log.d(TAG, "App installed successfully");
+//                    isAppReadyForUse = true;
+//                } else {
+//                    // The installation failed
+//                    Log.d(TAG, "App installation failed");
+//                }
+//            }
+//        });
+
     }
 
     private void openAppStorePageForAnApp(String packageName) {
