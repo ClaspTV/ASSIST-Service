@@ -34,7 +34,7 @@ public class AssistHttpServer extends NanoHTTPD {
 
     private Context context;
 
-    private Boolean isAppReadyForUse = true;
+    private Boolean isAppReadyForUse = true; // TODO: Need to optmize
 
     public AssistHttpServer(Context applicationContext, int availablePort) {
         super(availablePort); // TODO: change it available port
@@ -156,11 +156,11 @@ public class AssistHttpServer extends NanoHTTPD {
         the package name of the app. If it does, we can assume that the app has been fully installed and is ready to be used.
         */
 
-        // Use PackageManager to get a list of installed applications
+        // use PackageManager to get a list of installed applications
         PackageManager packageManager = context.getPackageManager();
         List<ApplicationInfo> installedApplications = packageManager.getInstalledApplications(PackageManager.GET_SERVICES);
 
-        // Check if the app is installed
+        // check if the app is installed
         boolean appInstalled = false;
         for (ApplicationInfo appInfo : installedApplications) {
             if (appInfo.packageName.equals(packageName)) {
@@ -171,13 +171,13 @@ public class AssistHttpServer extends NanoHTTPD {
             }
         }
 
-        Log.d(TAG, "App is installed: " + packageName);
+        Log.d(TAG, "AppInstalled " + appInstalled + " isAppReadyForUse " + isAppReadyForUse);
         return (appInstalled && isAppReadyForUse);
     }
 
     private void registerForActionPackageAdded(String packageName) throws IOException {
 
-        // Register a BroadcastReceiver to listen for package installation events
+        // register a BroadcastReceiver to listen for package installation events
         BroadcastReceiver packageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -200,60 +200,14 @@ public class AssistHttpServer extends NanoHTTPD {
             }
         };
 
-        // Register the BroadcastReceiver
-
+        // update the isAppReadyForUse flag
+        Log.d(TAG, "Setting isAppReadyForUse to false");
         isAppReadyForUse = false;
 
+        // register the BroadcastReceiver
         IntentFilter packageFilter = new IntentFilter(Intent.ACTION_PACKAGE_ADDED);
-        packageFilter.addDataScheme(packageName);
+        packageFilter.addDataScheme("package");
         context.registerReceiver(packageReceiver, packageFilter);
-
-        // Create a PackageInstaller instance
-//        PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
-
-// Create a session parameters object
-//        PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
-//                PackageInstaller.SessionParams.MODE_FULL_INSTALL);
-
-// Set the package name of the app you want to install
-//        params.setAppPackageName(packageName);
-
-// Register a session callback to monitor the installation progress
-//        packageInstaller.registerSessionCallback(new PackageInstaller.SessionCallback() {
-//            @Override
-//            public void onCreated(int sessionId) {
-//                // Session created
-//            }
-//
-//            @Override
-//            public void onBadgingChanged(int sessionId) {
-//                // Badging changed
-//            }
-//
-//            @Override
-//            public void onActiveChanged(int sessionId, boolean active) {
-//                // Active changed
-//            }
-//
-//            @Override
-//            public void onProgressChanged(int sessionId, float progress) {
-//                // Progress changed
-//            }
-//
-//            @Override
-//            public void onFinished(int sessionId, boolean success) {
-//                // Installation finished
-//                if (success) {
-//                    // The app is installed and ready to use
-//                    Log.d(TAG, "App installed successfully");
-//                    isAppReadyForUse = true;
-//                } else {
-//                    // The installation failed
-//                    Log.d(TAG, "App installation failed");
-//                }
-//            }
-//        });
-
     }
 
     private void openAppStorePageForAnApp(String packageName) {

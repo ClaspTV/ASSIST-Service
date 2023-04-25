@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         Intent intent = new Intent(this, AssistMdnsService.class);
-        startService(intent);
+        startForegroundService(intent);
     }
 
     @Override

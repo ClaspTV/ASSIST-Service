@@ -1,14 +1,22 @@
 package tv.vizbee.assist;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -37,11 +45,45 @@ public class AssistMdnsService extends Service {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand");
 
-        Toast.makeText(getApplicationContext(), "Started MDNS service", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Started ASSIST MDNS service", Toast.LENGTH_LONG).show();
+
+        //---
+        // Start of StartForegroundService
+        //---
+
+        // Starting the service as a foreground to avoid system stopping the service
+        // when an activity is idle. This happens when the PlayStore is shown and the
+        // app is getting installed
+        //
+        // This is not required when we run the service as a System service.
+        NotificationChannel chan = new NotificationChannel(
+                getApplicationContext().getPackageName(),
+                "My Foreground Service",
+                NotificationManager.IMPORTANCE_LOW);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
+                this, getPackageName());
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("App is running on foreground")
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setChannelId(getPackageName())
+                .build();
+        startForeground(1, notification);
+
+        //---
+        // End of StartForegroundService
+        //---
 
         // NanoHTTPD will use a default port number (usually 8080)
         try {
