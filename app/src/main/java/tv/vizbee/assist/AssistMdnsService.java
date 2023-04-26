@@ -20,10 +20,12 @@ import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AssistMdnsService extends Service {
 
-    private static final String TAG = "AssistMdnsServ";
+    private static final String TAG = "AssistMdnsService";
 
     private static final String ASSIST_MDNS_SERVICE_TYPE = "_vzb-assist._tcp.";
     private static final String ASSIST_MDNS_SERVICE_NAME = "Android TV Second Screen Install Service";
@@ -32,11 +34,18 @@ public class AssistMdnsService extends Service {
     private NsdManager.RegistrationListener mRegistrationListener;
 
     private AssistHttpServer server;
+    private int availablePort;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
+
+        try {
+            availablePort = getAvailablePort();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         try {
             registerService(5353);
@@ -87,9 +96,8 @@ public class AssistMdnsService extends Service {
 
         // NanoHTTPD will use a default port number (usually 8080)
         try {
-            int port = getAvailablePort();
-            Log.d(TAG, "starting server on port " + port);
-            server = new AssistHttpServer(this.getApplicationContext(), port);
+            Log.d(TAG, "starting server on port " + availablePort);
+            server = new AssistHttpServer(this.getApplicationContext(), availablePort);
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,12 +123,10 @@ public class AssistMdnsService extends Service {
     public void registerService(int port) throws IOException {
         Log.d(TAG, "registerService");
 
-        ServerSocket serverSocket = new ServerSocket(port);
-        int localPort = serverSocket.getLocalPort();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
         serviceInfo.setServiceName(ASSIST_MDNS_SERVICE_NAME);
         serviceInfo.setServiceType(ASSIST_MDNS_SERVICE_TYPE);
-        serviceInfo.setPort(localPort);
+        serviceInfo.setPort(availablePort);
 
         mRegistrationListener = createRegistrationListener();
 
