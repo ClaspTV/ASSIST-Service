@@ -13,4 +13,6 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ASSIST"
-include ':app'
+include ':demo-app'
+include ':assist'
+include ':system-service'

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="tv.vizbee.assist">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- <uses-permission android:name="android.permission.INTERACT_ACROSS_APPS" /> -->
+
+    <!--
+    On Android 10 and earlier, apps could query the full list of installed apps on the system
+    using methods like queryIntentActivities(). In most cases, this is far broader access than
+    is necessary for an app to implement its functionality. With our ongoing focus on privacy,
+    we’re introducing changes on how apps can query and interact with other installed apps on the
+    same device on Android 11. In particular, we’re bringing better scoped access to the
+    list of apps installed on a given device.
+    https://developer.android.com/training/package-visibility
+    https://developer.android.com/training/package-visibility/use-cases
+    https://medium.com/androiddevelopers/package-visibility-in-android-11-cc857f221cd9
+    -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+</manifest>

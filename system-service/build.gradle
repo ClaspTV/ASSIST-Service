@@ -1,0 +1,34 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdk 32
+
+    defaultConfig {
+        applicationId "tv.vizbee.system_service"
+        minSdk 21
+        targetSdk 32
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Define the system service
+    service {
+        name = "tv.vizbee.system_service.ASSISTService"
+        label = "ASSIST Service"
+        exported = true
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.leanback:leanback:1.0.0'
+}
