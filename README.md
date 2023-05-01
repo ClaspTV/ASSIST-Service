@@ -52,30 +52,79 @@ The System Service is the production version that can be built and immediately u
 
 You can see a version of the AOSP code changes with the ASSIST Service here: <XYZ-with-assist>
 
-Steps to create Android System Services
+Steps to create Assist System Services
 
-Step 1: Copy the ServiceManager classes from system-service module of ASSIST project to your AOSP File location: frameworks/base/core/java/android/app.
-AssistServiceManager.java
-lAssistServiceManager.aidl
-IAssistServiceManager.java
+Step 1: Copy the mentioned ServiceManager classes from `system-service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`  
+Files to be Copied:  
+  `AssistServiceManager.java`  
+  `lAssistServiceManager.aidl`  
+  `IAssistServiceManager.java`  
 
-Step 2: Copy the Service class.
-File location: frameworks/base/services/core/java/com/android/server
-AssistService.Java
+Step 2: Copy the mentioned Service class from `system-service` module of ASSIST project to your AOSP File location: `frameworks/base/services/core/java/com/android/server`  
+File to be Copied:  
+  `AssistService.Java`
 
-Step 3: Registering the System Service
-Modify the following classes
-frameworks/base/core/java/android/app/SystemServiceRegistry.java
-frameworks/base/core/java/android/content/Context.java
-frameworks/base/services/java/com/android/server/SystemServer.java
+Step 3: Modify the following files to register the System Service  
+  
+File: `frameworks/base/core/java/android/app/SystemServiceRegistry.java`  
+```
+//SystemServiceRegistry.java
+registerService(Context.ASSIST_SERVICE, AssistServiceManager.class,
+            new CachedServiceFetcher < AssistServiceManager > () {
+                @Override
+                public AssistServiceManager createService(ContextImpl ctx) throws ServiceNotFoundException {
+                    IBinder binder;
+                    if (ctx.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.O) {
+                        binder = ServiceManager.getServiceOrThrow(Context.ASSIST_SERVICE);
+                    } else {
+                        binder = ServiceManager.getService(Context.ASSIST_SERVICE);
+                    }
+                    return new AssistServiceManager(ctx, IAssistServiceManager.Stub.asInterface(binder));
+                }
+            });
+  
+```
+File: `frameworks/base/core/java/android/content/Context.java` 
+```
+  //Context.java 
+  //Add ASSIST_SEVICE 
+   @StringDef(suffix = {
+            "_SERVICE"
+        }, value = {
++           ASSIST_SERVICE,
+            ACCOUNT_SERVICE,
+            ACTIVITY_SERVICE,
+            ALARM_SERVICE,
+            NOTIFICATION_SERVICE,
+            ACCESSIBILITY_SERVICE,
+            CAPTIONING_SERVICE,
+        })
+  
++  public static final String ASSIST_SERVICE = "assist"; 
+
+  ```
+  
+File: `frameworks/base/services/java/com/android/server/SystemServer.java`
+  ```
+  //SystemServer.java
+        private static final String ASSIST_SERVICE = "com.android.server.AssistService";
+
+        //added in the startBootstrapServices() function 
+        AssistService assistservice = null;
+        try {
+            traceBeginAndSlog("AssistService");
+            assistservice = new AssistService(mSystemContext);
+            ServiceManager.addService(Context.ASSIST_SERVICE, assistservice);
+        } catch (Throwable e) {
+            Slog.e(TAG, "Starting AssistService failed!!! ", e);
+        }
+        traceEnd();
+        
+  ```
 
 Step 4: Build the AOSP and run it.
 
 Step 5: Check If the System Service Is running using Logs.
-
-
-P.s: The files for Step 1 and Step 2 is available in system-service module.
-
 
 ### Build and Deploy
 
