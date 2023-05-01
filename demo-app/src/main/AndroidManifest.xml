@@ -40,7 +40,7 @@
 <!--        </receiver>-->
 
         <service
-            android:name="tv.vizbee.assist.AssistMdnsService"
+            android:name="tv.vizbee.demoapp.AssistMdnsService"
             android:enabled="true"
             android:exported="true"
             android:process=":AssistProcess" />

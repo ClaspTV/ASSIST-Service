@@ -24,8 +24,8 @@ The repository provides the core ASSIST Service and enables it to be built as a 
 
 The code is organized as:
 * assist/ - 
-* systemService/ -
-* demoApp/ - 
+* system-service/ -
+* demo-app/ - 
 
 ## Demo App
 
@@ -38,7 +38,9 @@ The Demo App has been designed for rapid testing of ASSIST service updates witho
 
 ### Build and Run
 
-???
+* Set the target to `demo-app`
+* Select the Android TV device/simulator
+* Hit the run `Run demo-app` button
 
 ## System Service
 

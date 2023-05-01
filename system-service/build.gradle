@@ -6,7 +6,6 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "tv.vizbee.system_service"
         minSdk 21
         targetSdk 32
         versionCode 1
@@ -21,11 +20,11 @@ android {
     }
 
     // Define the system service
-    service {
-        name = "tv.vizbee.system_service.ASSISTService"
-        label = "ASSIST Service"
-        exported = true
-    }
+//    service {
+//        name = "tv.vizbee.system_service.ASSISTService"
+//        label = "ASSIST Service"
+//        exported = true
+//    }
 }
 
 dependencies {
