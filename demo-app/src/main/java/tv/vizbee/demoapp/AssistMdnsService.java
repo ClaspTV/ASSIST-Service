@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -19,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 import java.io.IOException;
 
 import tv.vizbee.assist.AssistServiceManager;
+import tv.vizbee.assist.utils.Logger;
 
 public class AssistMdnsService extends Service {
 
@@ -29,13 +29,13 @@ public class AssistMdnsService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate");
+        Logger.d(TAG, "onCreate");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand");
+        Logger.d(TAG, "onStartCommand");
 
         Toast.makeText(getApplicationContext(), "Started ASSIST MDNS service", Toast.LENGTH_LONG).show();
 
@@ -43,7 +43,7 @@ public class AssistMdnsService extends Service {
         try {
             mAssistServiceManager.registerService(this.getApplicationContext());
         } catch (IOException e) {
-            Log.e(TAG, "Failed to register service %s", e);
+            Logger.e(TAG, "Failed to register service %s", e);
         }
 
         //---
@@ -86,7 +86,7 @@ public class AssistMdnsService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy");
+        Logger.d(TAG, "onDestroy");
 
         mAssistServiceManager.unregisterService();
     }

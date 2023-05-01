@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.RequiresApi;
+
+import tv.vizbee.assist.utils.Logger;
 
 public class MainActivity extends Activity {
 
@@ -19,7 +20,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.v(TAG, "onCreate");
+        Logger.v(TAG, "onCreate");
 
         // remove the action bar as the activity is a Translucent activity
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -39,6 +40,6 @@ public class MainActivity extends Activity {
     public void onStop() {
         super.onStop();
 
-        Log.d(TAG, "onStop");
+        Logger.d(TAG, "onStop");
     }
 }

@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
+import tv.vizbee.assist.utils.Logger;
 
 public class AssistHttpServer extends NanoHTTPD {
 
@@ -39,12 +39,12 @@ public class AssistHttpServer extends NanoHTTPD {
 
         if (session.getMethod() == Method.GET) {
 
-            Log.i(TAG, "Handle GET method");
+            Logger.i(TAG, "Handle GET method");
             return handleGetRequest(session);
 
         } else if (session.getMethod() == Method.POST) {
 
-            Log.i(TAG, "Handle POST method");
+            Logger.i(TAG, "Handle POST method");
             return handlePostRequest(session);
         }
 
@@ -54,9 +54,9 @@ public class AssistHttpServer extends NanoHTTPD {
     private Response handleGetRequest(IHTTPSession session) {
 
         String uri = session.getUri();
-        Log.i(TAG, "path " + uri);
+        Logger.i(TAG, "path " + uri);
         Map<String, String> params = session.getParms();
-        Log.i(TAG, "GET params" + params);
+        Logger.i(TAG, "GET params" + params);
 
         if ("/info".equals(uri)) {
 
@@ -90,7 +90,7 @@ public class AssistHttpServer extends NanoHTTPD {
             Map<String, String> body = new HashMap<>();
             session.parseBody(body);
             String requestBody = session.getQueryParameterString();
-            Log.i(TAG, "Received post request with body " + body);
+            Logger.i(TAG, "Received post request with body " + body);
 
             String uri = session.getUri();
             JSONObject jsonPayload = null;
@@ -121,7 +121,7 @@ public class AssistHttpServer extends NanoHTTPD {
             }
             return newFixedLengthResponse("Received POST request with body: " + requestBody);
         } catch (IOException | ResponseException e) {
-            Log.e(TAG, "Error parsing request body", e);
+            Logger.e(TAG, "Error parsing request body", e);
             return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error parsing request body");
         }
     }
@@ -158,7 +158,7 @@ public class AssistHttpServer extends NanoHTTPD {
             }
         }
 
-        Log.d(TAG, "AppInstalled " + appInstalled + " isAppReadyForUse " + isAppReadyForUse);
+        Logger.d(TAG, "AppInstalled " + appInstalled + " isAppReadyForUse " + isAppReadyForUse);
         return (appInstalled && isAppReadyForUse);
     }
 
@@ -172,14 +172,14 @@ public class AssistHttpServer extends NanoHTTPD {
                 if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
 
                     // Package added
-                    Log.d(TAG, "Package added: " + addedPackageName);
+                    Logger.d(TAG, "Package added: " + addedPackageName);
                     if (addedPackageName.equals(packageName)){
                         isAppReadyForUse = true;
                     }
                 } else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
 
                     // Package removed
-                    Log.d(TAG, "Package removed: " + addedPackageName);
+                    Logger.d(TAG, "Package removed: " + addedPackageName);
                     if (addedPackageName.equals(packageName)){
                         isAppReadyForUse = false;
                     }
@@ -188,7 +188,7 @@ public class AssistHttpServer extends NanoHTTPD {
         };
 
         // update the isAppReadyForUse flag
-        Log.d(TAG, "Setting isAppReadyForUse to false");
+        Logger.d(TAG, "Setting isAppReadyForUse to false");
         isAppReadyForUse = false;
 
         // register the BroadcastReceiver
@@ -201,14 +201,14 @@ public class AssistHttpServer extends NanoHTTPD {
 
        try {
 
-           Log.i(TAG, "Opening playstore page with market:// for the package " + packageName);
+           Logger.i(TAG, "Opening playstore page with market:// for the package " + packageName);
            Uri uri = Uri.parse("market://details?id=" + packageName);
            Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
            appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
            context.startActivity(appStoreIntent);
        } catch (android.content.ActivityNotFoundException anfe) {
 
-            Log.i(TAG, "Opening playstore page with https:// for the package " + packageName);
+           Logger.i(TAG, "Opening playstore page with https:// for the package " + packageName);
             Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
             Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
             appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
