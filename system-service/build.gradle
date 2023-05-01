@@ -20,11 +20,11 @@ android {
     }
 
     // Define the system service
-//    service {
-//        name = "tv.vizbee.system_service.ASSISTService"
-//        label = "ASSIST Service"
-//        exported = true
-//    }
+    /*service {
+        name = "tv.vizbee.system_service.ASSISTService"
+        label = "ASSIST Service"
+        exported = true
+    }*/
 }
 
 dependencies {
