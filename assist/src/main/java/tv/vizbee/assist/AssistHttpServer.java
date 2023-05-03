@@ -22,16 +22,21 @@ import tv.vizbee.assist.utils.Logger;
 
 public class AssistHttpServer extends NanoHTTPD {
 
-    private static final String TAG = "AssistHttpServer";
+    private static final String TAG = AssistHttpServer.class.getName();
 
     private final Context context;
 
-    private Boolean isAppReadyForUse = true; // TODO: Need to optmize
+    // TODO: Need to optimize
+    private Boolean isAppReadyForUse = true;
 
     public AssistHttpServer(Context applicationContext, int availablePort) {
         super(availablePort);
-        Toast.makeText(applicationContext, "Started AssistHttpServer on port" + availablePort, Toast.LENGTH_LONG).show();
+
         context = applicationContext;
+
+        // TODO: Remote it before final publish
+        Toast.makeText(applicationContext, "Started AssistHttpServer on port " +
+                availablePort, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -48,82 +53,123 @@ public class AssistHttpServer extends NanoHTTPD {
             return handlePostRequest(session);
         }
 
-        return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not found");
+        Logger.i(TAG, "Got a request for unsupported method " + session.getMethod());
+        return getJsonResponse(
+                Response.Status.METHOD_NOT_ALLOWED,
+                "Requested method " + session.getMethod().name() + " not supported");
     }
 
     private Response handleGetRequest(IHTTPSession session) {
 
         String uri = session.getUri();
-        Logger.i(TAG, "path " + uri);
-        Map<String, String> params = session.getParms();
-        Logger.i(TAG, "GET params" + params);
+        Logger.v(TAG, "GET Request path " + uri);
 
-        if ("/info".equals(uri)) {
+        // Serve the app installation status
+        if ("/appInstallationStatus".equals(uri)) {
 
-            // Serve the service info
-
-            // different get methods and query params that this server serves
-            return newFixedLengthResponse(""); // TODO:
-        } else if ("/appStatus".equals(uri)) {
-
-            final String appPackageName = session.getParms().get("packageName");
-
-            // Serve the app installation status
-
-            // app not installed
-            if(!isAppInstalledAndReadyForUse(appPackageName)) {
-                return newFixedLengthResponse("AppNotInstalled");
+            // get application package name
+            Map<String, List<String>> params = session.getParameters();
+            String appPackageName = "";
+            List<String> nameValues = params.get("packageName");
+            if (null != nameValues && !nameValues.isEmpty()) {
+                appPackageName = nameValues.get(0);
             }
 
-            // app installed
-            return newFixedLengthResponse("AppInstalled");
-        } else {
+            // return bad request when package name is missing
+            if (appPackageName.isEmpty()) {
+                Logger.i(TAG, "Package name not found, returning BAD_REQUEST");
+                return getJsonResponse(Response.Status.BAD_REQUEST,
+                        "Missing Package Name");
+            }
 
-            // Serve a 404 response for unknown paths
-            return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "404 Not Found");
+            Logger.v(TAG, "Checking app installation status for package " + appPackageName);
+
+            // app installed
+            if(isAppInstalledAndReadyForUse(appPackageName)) {
+                return getJsonResponse(Response.Status.OK, "App Installed");
+            }
+
+            // app not installed
+            return getJsonResponse(Response.Status.OK, "App Not Installed");
         }
+
+        // default, return 404 path not found
+        return getJsonResponse(Response.Status.NOT_FOUND, "Path Not Found");
     }
 
     private Response handlePostRequest(IHTTPSession session) {
 
-        try {
-            Map<String, String> body = new HashMap<>();
-            session.parseBody(body);
-            String requestBody = session.getQueryParameterString();
-            Logger.i(TAG, "Received post request with body " + body);
+        // return bad request when application package name is missing
+        String appPackageName = getAppPackageNameFromSession(session);
+        if (appPackageName.isEmpty()) {
+            return getJsonResponse(Response.Status.BAD_REQUEST,
+                    "Missing Package Name");
+        }
 
-            String uri = session.getUri();
-            JSONObject jsonPayload = null;
-            String appPackageName = null;
-            if (null != body.get("postData")) {
+        String uri = session.getUri();
+        Logger.v(TAG, "POST Request path " + uri);
+
+        if ("/launchPlayStore".equals(uri)) {
+
+            // open PlayStore page for the specified package name
+            // if the application is not installed
+            if (!isAppInstalledAndReadyForUse(appPackageName)) {
+
+                registerForActionPackageAdded(appPackageName);
+                openAppStorePageForAnApp(appPackageName);
+
+                // return 201, created
+                return getJsonResponse(Response.Status.CREATED, "Success");
+            }
+
+            return getJsonResponse(Response.Status.OK, "App Already Installed");
+        } else if ("/launchApp".equals(uri)) {
+
+            launchApp(appPackageName);
+
+            return getJsonResponse(Response.Status.CREATED, "Success");
+        }
+
+        // default, return 404 path not found
+        return getJsonResponse(Response.Status.NOT_FOUND, "Path Not Found");
+    }
+
+    private String getAppPackageNameFromSession(IHTTPSession session) {
+
+        Map<String, String> body = new HashMap<>();
+        String appPackageName = null;
+        try {
+            session.parseBody(body);
+            Logger.i(TAG, "Post request body " + body);
+
+            JSONObject jsonPayload;
+            String postData = body.get("postData");
+            if (null != postData) {
 
                 // get JSON payload from request body
-                try {
-                    jsonPayload = new JSONObject(body.get("postData"));
-                    appPackageName = jsonPayload.getString("packageName");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                jsonPayload = new JSONObject(postData);
+                appPackageName = jsonPayload.getString("packageName");
             }
-
-            if ("/launchPlayStore".equals(uri)) {
-
-                // open PlayStore page for the specified package name only
-                // if the application is not installed
-                if (!isAppInstalledAndReadyForUse(appPackageName)) {
-
-                    registerForActionPackageAdded(appPackageName);
-                    openAppStorePageForAnApp(appPackageName);
-                }
-                return newFixedLengthResponse("Success");
-            } else if ("/launchApp".equals(uri)) {
-                launchApp(appPackageName);
-            }
-            return newFixedLengthResponse("Received POST request with body: " + requestBody);
-        } catch (IOException | ResponseException e) {
-            Logger.e(TAG, "Error parsing request body", e);
-            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error parsing request body");
+        } catch (IOException | ResponseException | JSONException e) {
+            Logger.e(TAG, "Got an exception when reading the post request data " + e);
         }
+
+        return appPackageName;
+    }
+
+    private Response getJsonResponse(Response.Status statusCode, String message) {
+
+        JSONObject jsonResponse = new JSONObject();
+        try {
+            jsonResponse.put("state", message);
+        } catch (JSONException e) {
+            Logger.e(TAG, "Error while adding a state", e);
+        }
+
+        return newFixedLengthResponse(
+                statusCode,
+                "application/json",
+                jsonResponse.toString());
     }
 
     private boolean isAppInstalledAndReadyForUse(String packageName) {
@@ -140,12 +186,14 @@ public class AssistHttpServer extends NanoHTTPD {
         we can register a BroadcastReceiver to listen for the ACTION_PACKAGE_ADDED intent,
         which is broadcasted by the system when a new package is added.
         When the ACTION_PACKAGE_ADDED intent is received, we can check if the added package matches
-        the package name of the app. If it does, we can assume that the app has been fully installed and is ready to be used.
+        the package name of the app. If it does, we can assume that the app has been fully
+        installed and is ready to be used.
         */
 
         // use PackageManager to get a list of installed applications
         PackageManager packageManager = context.getPackageManager();
-        List<ApplicationInfo> installedApplications = packageManager.getInstalledApplications(PackageManager.GET_SERVICES);
+        List<ApplicationInfo> installedApplications = packageManager.
+                getInstalledApplications(PackageManager.GET_META_DATA);
 
         // check if the app is installed
         boolean appInstalled = false;
@@ -158,11 +206,13 @@ public class AssistHttpServer extends NanoHTTPD {
             }
         }
 
-        Logger.d(TAG, "AppInstalled " + appInstalled + " isAppReadyForUse " + isAppReadyForUse);
+        Logger.d(TAG, "App installation status - AppInstalled " +
+                appInstalled + " AppReadyForUse " + isAppReadyForUse);
+
         return (appInstalled && isAppReadyForUse);
     }
 
-    private void registerForActionPackageAdded(String packageName) throws IOException {
+    private void registerForActionPackageAdded(String packageName) {
 
         // register a BroadcastReceiver to listen for package installation events
         BroadcastReceiver packageReceiver = new BroadcastReceiver() {
@@ -172,14 +222,14 @@ public class AssistHttpServer extends NanoHTTPD {
                 if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
 
                     // Package added
-                    Logger.d(TAG, "Package added: " + addedPackageName);
+                    Logger.d(TAG, "Package added " + addedPackageName);
                     if (addedPackageName.equals(packageName)){
                         isAppReadyForUse = true;
                     }
                 } else if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
 
                     // Package removed
-                    Logger.d(TAG, "Package removed: " + addedPackageName);
+                    Logger.d(TAG, "Package removed " + addedPackageName);
                     if (addedPackageName.equals(packageName)){
                         isAppReadyForUse = false;
                     }
@@ -201,14 +251,16 @@ public class AssistHttpServer extends NanoHTTPD {
 
        try {
 
-           Logger.i(TAG, "Opening playstore page with market:// for the package " + packageName);
+           Logger.i(TAG, "Opening playstore page with market:// " +
+                   "for the package " + packageName);
            Uri uri = Uri.parse("market://details?id=" + packageName);
            Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
            appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
            context.startActivity(appStoreIntent);
        } catch (android.content.ActivityNotFoundException anfe) {
 
-           Logger.i(TAG, "Opening playstore page with https:// for the package " + packageName);
+           Logger.i(TAG, "Opening playstore page with https:// " +
+                   "for the package " + packageName);
             Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
             Intent appStoreIntent = new Intent(Intent.ACTION_VIEW, uri);
             appStoreIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -220,6 +272,7 @@ public class AssistHttpServer extends NanoHTTPD {
 
         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         if (launchIntent != null) {
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launchIntent); // Launch the app
         }
     }

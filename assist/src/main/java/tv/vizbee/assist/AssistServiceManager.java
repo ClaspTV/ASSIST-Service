@@ -13,7 +13,7 @@ import tv.vizbee.assist.utils.Logger;
 
 public class AssistServiceManager {
 
-    private static final String LOG_TAG = "AssistServiceManager";
+    private static final String LOG_TAG = AssistServiceManager.class.getSimpleName();
 
     private static final String ASSIST_MDNS_SERVICE_TYPE = "_vzb-assist._tcp.";
     private static final String ASSIST_MDNS_SERVICE_NAME = "Android TV Second Screen Install Service";
@@ -28,7 +28,7 @@ public class AssistServiceManager {
     //--------
 
     public void registerService(Context context) throws IOException {
-        Logger.d(LOG_TAG, "registerService");
+        Logger.v(LOG_TAG, "registerService");
 
         //---
         // Start http server
@@ -39,7 +39,7 @@ public class AssistServiceManager {
         availablePort = getAvailablePort();
 
         // 2. start the server
-        Logger.d(LOG_TAG, "starting AssistHttpServer on port " + availablePort);
+        Logger.i(LOG_TAG, "Starting AssistHttpServer on port " + availablePort);
         mAssistHttpServer = new AssistHttpServer(context, availablePort);
         mAssistHttpServer.start();
 
@@ -61,7 +61,7 @@ public class AssistServiceManager {
 
     public void unregisterService() {
 
-        Logger.d(LOG_TAG, "unregisterService");
+        Logger.v(LOG_TAG, "unregisterService");
 
         // 1. stop the server
         mAssistHttpServer. stop();
@@ -78,22 +78,22 @@ public class AssistServiceManager {
         return new NsdManager.RegistrationListener() {
             @Override
             public void onServiceRegistered(NsdServiceInfo serviceInfo) {
-                Logger.d(LOG_TAG, "Service registered: " + serviceInfo);
+                Logger.i(LOG_TAG, "ASSIST Service registered " + serviceInfo);
             }
 
             @Override
             public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                Logger.e(LOG_TAG, "Service registration failed: " + errorCode);
+                Logger.w(LOG_TAG, "ASSIST Service registration failed " + errorCode);
             }
 
             @Override
             public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
-                Logger.d(LOG_TAG, "Service unregistered: " + serviceInfo);
+                Logger.i(LOG_TAG, "ASSIST Service unregistered " + serviceInfo);
             }
 
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                Logger.e(LOG_TAG, "Service Unregistration failed: " + errorCode);
+                Logger.w(LOG_TAG, "ASSIST Service Unregistration failed " + errorCode);
             }
         };
     }

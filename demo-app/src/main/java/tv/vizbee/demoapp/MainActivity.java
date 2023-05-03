@@ -20,6 +20,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+//        Logger.setLogLevel(Logger.TYPE.VERBOSE);
+
         Logger.v(TAG, "onCreate");
 
         // remove the action bar as the activity is a Translucent activity
