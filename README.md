@@ -26,7 +26,7 @@ ASSIST service can be discovered by 2nd screen devices by using the MDNS target 
 
 ## ASSIST REST APIs
 
-Once discovered, the ASSIST service shares a HTTPS end-point which supports the following REST APIs.
+Once discovered, the ASSIST service shares an HTTPS end-point which supports the following REST APIs.
 
 | Method Type | Method Name | Method Parameters/Body| Response Code | Response Body | Notes|
 | :---        | :---   | :---   | :---   | :---   | :--- |
