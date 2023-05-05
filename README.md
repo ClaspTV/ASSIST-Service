@@ -8,11 +8,15 @@ Mobile-to-TV discovery, install and launch of streaming apps enables rich cross-
 
 **DIAL**
 
-[DIAL](https://docs.google.com/viewer?a=v&pid=sites&srcid=ZGlhbC1tdWx0aXNjcmVlbi5vcmd8ZGlhbHxneDoyNzlmNzY3YWJlMmY1MjZl) protocol is an open protocol that is implemented in some Javascript and other TV platforms. DIAL enables TV app discovery and launch from mobile apps but leaves the TV app install capability as a TV platform specific implementation detail to the TV platform developers.
+[DIAL](https://docs.google.com/viewer?a=v&pid=sites&srcid=ZGlhbC1tdWx0aXNjcmVlbi5vcmd8ZGlhbHxneDoyNzlmNzY3YWJlMmY1MjZl) is an open protocol that is implemented in some TV platforms. DIAL enables TV app discovery and launch from mobile apps but leaves the mobile-to-TV app install capability as a TV platform specific implementation detail to the TV platform developers.
+
+**GOOGLECAST**
+
+[GoogleCast](https://www.google.com/intl/en_us/chromecast/built-in/) is Google's proprietary protocol that is implemented on Android TVs. GoogleCast enables the TV app discovery and launch from mobile apps and does not have any support for mobile-to-TV app install.
 
 **ASSIST**
 
-ASSIST is an open protocol for TV app discovery, launch and install on Android TVs. It *assists* existing open protocols like DIAL or proprietary protocols like Chromecast. The key feature of ASSIST is that it enables a secure and privacy-friendly way to initiate Android TV app install from mobile devices as part of casting flows when using DIAL or Chromecast protocols. ASSIST significantly increases the mobile-to-TV interactions by removing the biggest hurdle, i.e., automatic Android TV app install, during initial casting from a mobile app.
+ASSIST is an open protocol for mobile-to-TV app install on Android TVs. It *assists* existing open protocols like DIAL or proprietary protocols like GoogleCast. The key feature of ASSIST is that it enables a secure and privacy-friendly way to initiate Android TV app install from mobile devices as part of casting flows when using protocols like DIAL or Chromecast. The big contribution of ASSIST is that it significantly increases the mobile-to-TV user interactions by removing the biggest hurdle, i.e., automating Android TV app install, during initial casting from a mobile app.
 
 # ASSIST Specification
 
