@@ -4,7 +4,7 @@ This repository is an open source implementation of the AndroidTV Second Screen 
 
 # Overview
 
-Mobile-to-TV discovery, install and launch of streaming apps enables rich cross-device experiences to increase viewer acquisition, engagement and monetization on TVs. The streaming industry has created open protocols and implementations to enable such mobile-to-TV interactions.  
+Mobile-to-TV discovery, install and launch of streaming apps enables rich cross-device experiences to increase viewer acquisition, engagement and monetization on TVs. The streaming industry has created open & proprietary protocols to enable such mobile-to-TV interactions.  
 
 **DIAL**
 
