@@ -37,11 +37,11 @@ Once discovered, the ASSIST service shares an HTTPS end-point which supports the
 
 <method type> <method name> <response code> <response body>
 
-# Developer
+# ASSIST Development & Deployment
 
 ## Overview
 
-The repository provides the core ASSIST Service and enables it to be built as a (1) System Service and/or a (2) Demo App. The System Service can be easily incorporated into existing Android OS builds (AOSP) on your streaming TV platform. The Demo App enables simple demonstration of the ASSIST feature and also aids in development with a simpler test cycle.
+The repository provides the core ASSIST Service and enables it to be built as a (1) System Service and/or a (2) Demo App. The System Service can be easily incorporated into existing Android OS builds (AOSP) on your streaming TV platform. The Demo App enables simple demonstration of the ASSIST feature and also aids in the protocol development with a simpler test cycle.
 
 ## Demo App
 
