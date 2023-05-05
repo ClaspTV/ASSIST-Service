@@ -30,7 +30,7 @@ Once discovered, the ASSIST service shares an HTTPS end-point which supports the
 
 | Method Type | Method Name | Method Parameters/Body| Response Code | Response Body | Notes|
 | :---        | :---   | :---   | :---   | :---   | :--- |
-| GET   | appInstallationStatus | packageName = com.crackle.androidtv | 200 OK | ```{state: "App Installed"}``` or ```{state: "App Not Installed"}``` | Success scenario. |
+| GET   | appInstallationStatus | packageName = <app package name> | 200 OK | ```{state: "App Installed"}``` or ```{state: "App Not Installed"}``` | Success scenario. |
 |       | | | 404 Not Found | N/A | Missing packageName parameter in the URL. |
 |       | | | 500 Internal Service Error | N/A | Server execution error. |
 | POST  | launchAppStore        | {}      | | | |
