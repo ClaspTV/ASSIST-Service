@@ -14,22 +14,32 @@ Mobile-to-TV discovery, install and launch of streaming apps enables rich cross-
 
 ASSIST is an open protocol for TV app discovery, launch and install on Android TVs. It *assists* existing open protocols like DIAL or proprietary protocols like Chromecast. The key feature of ASSIST is that it enables a secure and privacy-friendly way to initiate Android TV app install from mobile devices as part of casting flows when using DIAL or Chromecast protocols. ASSIST significantly increases the mobile-to-TV interactions by removing the biggest hurdle, i.e., automatic Android TV app install, during initial casting from a mobile app.
 
+# ASSIST Specification
+
+## ASSIST MDNS Discovery
+
+ASSIST service can be discovered by 2nd screen devices by using the MDNS target `_vzb-assist._tcp.`.
+
+## ASSIST REST APIs
+
+Once discovered, the ASSIST service shares a HTTPS end-point which supports the following REST APIs.
+
+| Method Type | Method Name | Method Parameters/Body| Response Code | Response Body | Notes|
+| :---        | :---   | :---   | :---   | :---   | :--- |
+| GET   | appInstallationStatus | packageName=com.crackle.androidtv | 200 OK | ```{state: "App Installed"}``` | Success scenario. |
+|       | | | 404 Not Found | N/A | Missing packageName parameter in the URL. |
+|       | | | 500 Internal Service Error | N/A | Server execution error. |
+| POST  | launchAppStore        | {}      | | | |
+
+<method type> <method name> <response code> <response body>
+
 # Developer
 
 ## Overview
 
-The repository provides the core ASSIST Service and enables it to be built as a (1) System Service and (2) Demo App. The System Service can be easily incorporated into existing Android OS builds (AOSP) on your TV platform. The Demo App enables simple demonstration of the ASSIST feature and also aids in its development with a simpler test cycle.
-
-## Code Structure
-
-The code is organized as:
-* assist/ - 
-* system-service/ -
-* demo-app/ - 
+The repository provides the core ASSIST Service and enables it to be built as a (1) System Service and/or a (2) Demo App. The System Service can be easily incorporated into existing Android OS builds (AOSP) on your streaming TV platform. The Demo App enables simple demonstration of the ASSIST feature and also aids in development with a simpler test cycle.
 
 ## Demo App
-
-### Notes
 
 The Demo App has been designed for rapid testing of ASSIST service updates without having to build and deploy a System Service. In this mode, 
 
@@ -38,21 +48,17 @@ The Demo App has been designed for rapid testing of ASSIST service updates witho
 
 ### Build and Run
 
-* Set the target to `demo-app`
-* Select the Android TV device/simulator
+* Set the target to `demo-app` in Android Studio
+* Select the Android TV device or simulator
 * Hit the run `Run demo-app` button
 
 ## System Service
 
-### Notes
-
-The System Service is the production version that can be built and immediately use in custom Android TV platforms.
+The System Service can be incorporated, built and immediately used in custom Android TV platforms.
 
 ### AOSP Code Changes
 
-You can see a version of the AOSP code changes with the ASSIST Service here: <XYZ-with-assist>
-
-Steps to create Assist System Services
+You can see a version of the AOSP code changes with the ASSIST Service here: <TODO-XYZ-with-assist>
 
 Step 1: Copy the mentioned ServiceManager classes from `system-service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`  
 Files to be Copied:  
