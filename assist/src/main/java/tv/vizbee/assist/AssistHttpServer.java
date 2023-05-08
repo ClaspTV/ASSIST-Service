@@ -29,14 +29,16 @@ public class AssistHttpServer extends NanoHTTPD {
     // TODO: Need to optimize
     private Boolean isAppReadyForUse = true;
 
-    public AssistHttpServer(Context applicationContext, int availablePort) {
+    public AssistHttpServer(Context applicationContext, int availablePort, String launchMode) {
         super(availablePort);
 
         context = applicationContext;
 
         // TODO: Remote it before final publish
-        Toast.makeText(applicationContext, "Started AssistHttpServer on port " +
-                availablePort, Toast.LENGTH_LONG).show();
+        if (null == launchMode || !launchMode.equals("silent")) {
+            Toast.makeText(applicationContext, "Started ASSIST http server on port " +
+                    availablePort, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

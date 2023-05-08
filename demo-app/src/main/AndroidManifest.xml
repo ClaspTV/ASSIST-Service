@@ -9,13 +9,15 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:banner="@mipmap/ic_launcher"
         android:icon="@mipmap/ic_launcher"
-        android:label=""
+        android:logo="@mipmap/ic_launcher"
+        android:label="ASSIST"
         android:persistent="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         tools:targetApi="31">
          <activity
+             android:icon="@mipmap/ic_launcher"
              android:name="tv.vizbee.demoapp.MainActivity"
              android:exported="true"
              android:theme="@android:style/Theme.Translucent">

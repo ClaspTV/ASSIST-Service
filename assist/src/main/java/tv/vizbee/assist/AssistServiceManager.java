@@ -27,7 +27,7 @@ public class AssistServiceManager {
     // Service Register
     //--------
 
-    public void registerService(Context context) throws IOException {
+    public void registerService(Context context, String launchMode) throws IOException {
         Logger.v(LOG_TAG, "registerService");
 
         //---
@@ -40,7 +40,7 @@ public class AssistServiceManager {
 
         // 2. start the server
         Logger.i(LOG_TAG, "Starting AssistHttpServer on port " + availablePort);
-        mAssistHttpServer = new AssistHttpServer(context, availablePort);
+        mAssistHttpServer = new AssistHttpServer(context, availablePort, launchMode);
         mAssistHttpServer.start();
 
         //---

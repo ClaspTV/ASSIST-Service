@@ -33,8 +33,18 @@ public class MainActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         );
 
+        // get extra string and pass it on
+        Intent mainIntent = getIntent();
+        String launchMode = null;
+        if (null != mainIntent) {
+            launchMode = mainIntent.getStringExtra("launch_mode");
+        }
+
         // start a foreground service
         Intent intent = new Intent(this, AssistMdnsService.class);
+        if (null != launchMode) {
+            intent.putExtra("launch_mode", launchMode);
+        }
         startForegroundService(intent);
     }
 

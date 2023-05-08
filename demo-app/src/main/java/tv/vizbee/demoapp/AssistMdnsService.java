@@ -37,11 +37,21 @@ public class AssistMdnsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Logger.d(TAG, "onStartCommand");
 
-        Toast.makeText(getApplicationContext(), "Started ASSIST MDNS service", Toast.LENGTH_LONG).show();
+        // get extra string and pass it on
+        String launchMode = null;
+        if (null != intent) {
+            launchMode = intent.getStringExtra("launch_mode");
+        }
+
+        if (null == launchMode || !launchMode.equals("silent")) {
+            Toast.makeText(getApplicationContext(),
+                    "Started ASSIST service",
+                    Toast.LENGTH_LONG).show();
+        }
 
         mAssistServiceManager = new AssistServiceManager();
         try {
-            mAssistServiceManager.registerService(this.getApplicationContext());
+            mAssistServiceManager.registerService(this.getApplicationContext(), launchMode);
         } catch (IOException e) {
             Logger.e(TAG, "Failed to register service %s", e);
         }
