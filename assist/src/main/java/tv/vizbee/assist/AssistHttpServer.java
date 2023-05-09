@@ -77,10 +77,10 @@ public class AssistHttpServer extends NanoHTTPD {
                 appPackageName = nameValues.get(0);
             }
 
-            // return bad request when package name is missing
+            // return not found when the package name is missing
             if (appPackageName.isEmpty()) {
-                Logger.i(TAG, "Package name not found, returning BAD_REQUEST");
-                return getJsonResponse(Response.Status.BAD_REQUEST,
+                Logger.i(TAG, "Package name not found, returning NOT_FOUND");
+                return getJsonResponse(Response.Status.NOT_FOUND,
                         "Missing Package Name");
             }
 
@@ -101,10 +101,18 @@ public class AssistHttpServer extends NanoHTTPD {
 
     private Response handlePostRequest(IHTTPSession session) {
 
-        // return bad request when application package name is missing
-        String appPackageName = getAppPackageNameFromSession(session);
+        // return not found when application package name is missing
+        String appPackageName = "";
+        try {
+            appPackageName = getAppPackageNameFromSession(session);
+        } catch (ResponseException | IOException | JSONException e) {
+            Logger.e(TAG, "Got an exception when reading the post request data " + e);
+            return getJsonResponse(Response.Status.INTERNAL_ERROR,
+                    "Internal Error");
+        }
+
         if (appPackageName.isEmpty()) {
-            return getJsonResponse(Response.Status.BAD_REQUEST,
+            return getJsonResponse(Response.Status.NOT_FOUND,
                     "Missing Package Name");
         }
 
@@ -120,8 +128,8 @@ public class AssistHttpServer extends NanoHTTPD {
                 registerForActionPackageAdded(appPackageName);
                 openAppStorePageForAnApp(appPackageName);
 
-                // return 201, created
-                return getJsonResponse(Response.Status.CREATED, "Success");
+                // return 200, OK
+                return getJsonResponse(Response.Status.OK, "Success");
             }
 
             return getJsonResponse(Response.Status.OK, "App Already Installed");
@@ -129,31 +137,28 @@ public class AssistHttpServer extends NanoHTTPD {
 
             launchApp(appPackageName);
 
-            return getJsonResponse(Response.Status.CREATED, "Success");
+            return getJsonResponse(Response.Status.OK, "Success");
         }
 
         // default, return 404 path not found
         return getJsonResponse(Response.Status.NOT_FOUND, "Path Not Found");
     }
 
-    private String getAppPackageNameFromSession(IHTTPSession session) {
+    private String getAppPackageNameFromSession(IHTTPSession session)
+            throws ResponseException, IOException, JSONException {
 
         Map<String, String> body = new HashMap<>();
         String appPackageName = null;
-        try {
-            session.parseBody(body);
-            Logger.i(TAG, "Post request body " + body);
+        session.parseBody(body);
+        Logger.i(TAG, "Post request body " + body);
 
-            JSONObject jsonPayload;
-            String postData = body.get("postData");
-            if (null != postData) {
+        JSONObject jsonPayload;
+        String postData = body.get("postData");
+        if (null != postData) {
 
-                // get JSON payload from request body
-                jsonPayload = new JSONObject(postData);
-                appPackageName = jsonPayload.getString("packageName");
-            }
-        } catch (IOException | ResponseException | JSONException e) {
-            Logger.e(TAG, "Got an exception when reading the post request data " + e);
+            // get JSON payload from request body
+            jsonPayload = new JSONObject(postData);
+            appPackageName = jsonPayload.getString("packageName");
         }
 
         return appPackageName;
