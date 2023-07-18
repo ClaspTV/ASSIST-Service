@@ -52,6 +52,9 @@ The Demo App has been designed for rapid testing of ASSIST service updates witho
 * ASSIST service runs as part of the demo app with a transparent UI. 
 * The demo app must be run first for the ASSIST service to be discoverable and act on mobile commands.
 
+Here is a video showing the ASSIST Service demo app running on Verizon Stream TV.
+[Verizon Demo Video](https://vimeo.com/824170547/1615c77e31)
+
 ### Build and Run
 
 * Set the target to `demo-app` in Android Studio
