@@ -53,6 +53,7 @@ The Demo App has been designed for rapid testing of ASSIST service updates witho
 * The demo app must be run first for the ASSIST service to be discoverable and act on mobile commands.
 
 Here is a video showing the ASSIST Service demo app running on Verizon Stream TV.
+
 [Verizon Demo Video](https://vimeo.com/824170547/1615c77e31)
 
 ### Build and Run
@@ -69,36 +70,47 @@ The System Service can be incorporated, built and immediately used in custom And
 
 You can see a version of the AOSP code changes with the ASSIST Service here: <TODO-XYZ-with-assist>
 
-Step 1: Copy the mentioned ServiceManager classes from `system-service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`  
+Step 1: Add nanohttpd library by copying nanohttpd folder from `system-service.nanohttpd` module of ASSIST project to your AOSP File location `prebuilts/mic/common/`
+
+Folder to be Copied: 
+  `nanohttpd`
+
+Step 2: Copy the mentioned ServiceManager classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`  
 Files to be Copied:  
+  `AssistHttpServer.java`  
+  `AssistService.java`  
   `AssistServiceManager.java`  
-  `lAssistServiceManager.aidl`  
-  `IAssistServiceManager.java`  
 
-Step 2: Copy the mentioned Service class from `system-service` module of ASSIST project to your AOSP File location: `frameworks/base/services/core/java/com/android/server`  
-File to be Copied:  
-  `AssistService.Java`
+Step 3: Modify the Android.bp file to use nanohttpd library
+  
+File: `frameworks/base/services/core/Android.bp` 
+```
+  //Android.bp 
+  //Add nanohttpd 
+   java_library_static {
+    name: "services.core.unboosted",
+    defaults: ["platform_service_defaults"],
+    static_libs: [   
++	    “nanohttpd”
+    ],
+  }
 
-Step 3: Modify the following files to register the System Service  
+  ```
+
+Step 4: Modify the AndroidManifest for adding AssistService and NanoHTTPD 
   
-File: `frameworks/base/core/java/android/app/SystemServiceRegistry.java`  
+File: `frameworks/base/core/res` 
 ```
-//SystemServiceRegistry.java
-registerService(Context.ASSIST_SERVICE, AssistServiceManager.class,
-            new CachedServiceFetcher < AssistServiceManager > () {
-                @Override
-                public AssistServiceManager createService(ContextImpl ctx) throws ServiceNotFoundException {
-                    IBinder binder;
-                    if (ctx.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.O) {
-                        binder = ServiceManager.getServiceOrThrow(Context.ASSIST_SERVICE);
-                    } else {
-                        binder = ServiceManager.getService(Context.ASSIST_SERVICE);
-                    }
-                    return new AssistServiceManager(ctx, IAssistServiceManager.Stub.asInterface(binder));
-                }
-            });
+  //AndroidManifest 
+  //Add nanohttpd 
+  <uses-library android:name = "fi.iki.elonen.NanoHTTPD" />
+  <service android:name="com.android.server.AssistService"
+    android:exported="false" />
+
+  ```
+
+Step 5: Modify the following files to register the System Service  
   
-```
 File: `frameworks/base/core/java/android/content/Context.java` 
 ```
   //Context.java 
@@ -137,10 +149,18 @@ File: `frameworks/base/services/java/com/android/server/SystemServer.java`
         
   ```
 
-Step 4: Build the AOSP and run it.
+File: `frameworks/base/core/api/current.txt`
+  ```
 
-Step 5: Check If the System Service Is running using Logs.
+        public abstract class Context {
+        field public static final String ASSIST_SERVICE = "assist";
+        }
+    
+  ```
+
+Step 6: Build the AOSP and run it.
+
+Step 7: Check If the System Service Is running using Logs.
 
 ### Build and Deploy
 
-???
