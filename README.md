@@ -70,34 +70,32 @@ The System Service can be incorporated, built and immediately used in custom And
 
 You can see a version of the AOSP code changes with the ASSIST Service here: <TODO-XYZ-with-assist>
 
-Step 1: Add nanohttpd library by copying nanohttpd folder from `system-service.nanohttpd` module of ASSIST project to your AOSP File location `prebuilts/mic/common/`
+**Step 1:** Add nanohttpd library 
+  Copy `nanohttpd` folder from `system-service.nanohttpd` module of ASSIST project to your AOSP File location `prebuilts/mic/common/`
 
-Folder to be Copied: 
-  `nanohttpd`
-
-Step 2: Copy the mentioned ServiceManager classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`  
-Files to be Copied:  
+**Step 2:** Add Service files 
+  Copy the following classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`
   `AssistHttpServer.java`  
   `AssistService.java`  
   `AssistServiceManager.java`  
 
-Step 3: Modify the Android.bp file to use nanohttpd library
+**Step 3:** Modify the Android.bp file to use nanohttpd library
   
 File: `frameworks/base/services/core/Android.bp` 
 ```
   //Android.bp 
   //Add nanohttpd 
-   java_library_static {
+  java_library_static {
     name: "services.core.unboosted",
     defaults: ["platform_service_defaults"],
     static_libs: [   
-+	    “nanohttpd”
+      “nanohttpd”
     ],
   }
 
   ```
 
-Step 4: Modify the AndroidManifest for adding AssistService and NanoHTTPD 
+**Step 4:** Modify the AndroidManifest for adding AssistService and NanoHTTPD 
   
 File: `frameworks/base/core/res` 
 ```
@@ -109,58 +107,57 @@ File: `frameworks/base/core/res`
 
   ```
 
-Step 5: Modify the following files to register the System Service  
+**Step 5:** Modify the following files as specified below to register the AssistService as as System Service  
   
 File: `frameworks/base/core/java/android/content/Context.java` 
 ```
-  //Context.java 
-  //Add ASSIST_SEVICE 
-   @StringDef(suffix = {
-            "_SERVICE"
-        }, value = {
-+           ASSIST_SERVICE,
-            ACCOUNT_SERVICE,
-            ACTIVITY_SERVICE,
-            ALARM_SERVICE,
-            NOTIFICATION_SERVICE,
-            ACCESSIBILITY_SERVICE,
-            CAPTIONING_SERVICE,
-        })
+  // Add ASSIST_SEVICE
   
-+  public static final String ASSIST_SERVICE = "assist"; 
+  @StringDef(
+    suffix = {
+      "_SERVICE"
+    }, 
+    value = {
+      ASSIST_SERVICE,
+      ACCOUNT_SERVICE,
+      ACTIVITY_SERVICE,
+      ALARM_SERVICE,
+      NOTIFICATION_SERVICE,
+      ACCESSIBILITY_SERVICE,
+      CAPTIONING_SERVICE,
+    }
+  )
+  
+  public static final String ASSIST_SERVICE = "assist"; 
 
   ```
   
 File: `frameworks/base/services/java/com/android/server/SystemServer.java`
   ```
-  //SystemServer.java
-        private static final String ASSIST_SERVICE = "com.android.server.AssistService";
+  private static final String ASSIST_SERVICE = "com.android.server.AssistService";
 
-        //added in the startBootstrapServices() function 
-        AssistService assistservice = null;
-        try {
-            traceBeginAndSlog("AssistService");
-            assistservice = new AssistService(mSystemContext);
-            ServiceManager.addService(Context.ASSIST_SERVICE, assistservice);
-        } catch (Throwable e) {
-            Slog.e(TAG, "Starting AssistService failed!!! ", e);
-        }
-        traceEnd();
+  //add the following to the `startBootstrapServices()` function
+  
+  AssistService assistservice = null;
+  try {
+      traceBeginAndSlog("AssistService");
+      assistservice = new AssistService(mSystemContext);
+      ServiceManager.addService(Context.ASSIST_SERVICE, assistservice);
+  } catch (Throwable e) {
+      Slog.e(TAG, "Starting AssistService failed!!! ", e);
+  }
+  traceEnd();
         
   ```
 
 File: `frameworks/base/core/api/current.txt`
   ```
-
         public abstract class Context {
-        field public static final String ASSIST_SERVICE = "assist";
+          field public static final String ASSIST_SERVICE = "assist";
         }
-    
   ```
 
-Step 6: Build the AOSP and run it.
+**Step 6:** Build the AOSP and run it.
 
-Step 7: Check If the System Service Is running using Logs.
-
-### Build and Deploy
+**Step 7:** Verify the System Service is running using Logs.
 
