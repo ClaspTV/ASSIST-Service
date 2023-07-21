@@ -26,7 +26,6 @@ public class AssistHttpServer extends NanoHTTPD {
 
     private final Context context;
 
-    // TODO: Need to optimize
     private Boolean isAppReadyForUse = true;
 
     public AssistHttpServer(Context applicationContext, int availablePort, String launchMode) {
@@ -34,7 +33,8 @@ public class AssistHttpServer extends NanoHTTPD {
 
         context = applicationContext;
 
-        // TODO: Remote it before final publish
+        // Shows a toast with the port on which ASSIST http server running.
+        // The toast will not show if the ASSIST service is started in a silent mode.
         if (null == launchMode || !launchMode.equals("silent")) {
             Toast.makeText(applicationContext, "Started ASSIST http server on port " +
                     availablePort, Toast.LENGTH_LONG).show();
@@ -191,7 +191,7 @@ public class AssistHttpServer extends NanoHTTPD {
 
         To determine if the app is fully installed and ready to be used,
         we can register a BroadcastReceiver to listen for the ACTION_PACKAGE_ADDED intent,
-        which is broadcasted by the system when a new package is added.
+        which is broadcast by the system when a new package is added.
         When the ACTION_PACKAGE_ADDED intent is received, we can check if the added package matches
         the package name of the app. If it does, we can assume that the app has been fully
         installed and is ready to be used.

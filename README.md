@@ -28,14 +28,14 @@ ASSIST service can be discovered by 2nd screen devices by using the MDNS target 
 
 Once discovered, the ASSIST service shares an HTTPS end-point which supports the following REST APIs.
 
-| Method Type | Method Name | Method Parameters/Body| Response Code | Response Body | Notes|
-| :---        | :---   | :---   | :---   | :---   | :--- |
-| GET   | appInstallationStatus | packageName = androidtv_app_package_name | 200 OK        | ```{state: "App Installed"}``` or ```{state: "App Not Installed"}``` | Success scenario. |
-|       |                       |                                          | 404 Not Found | N/A | Path not found or missing packageName parameter in the URL. |
-|       | | | 500 Internal Service Error | N/A | Server execution error. |
+| Method Type | Method Name | Method Parameters/Body                       | Response Code | Response Body | Notes|
+| :---        | :---   |:---------------------------------------------| :---   | :---   | :--- |
+| GET   | appInstallationStatus | /packageName=androidtv_app_package_name      | 200 OK        | ```{state: "App Installed"}``` or ```{state: "App Not Installed"}``` | Success scenario. |
+|       |                       |                                              | 404 Not Found | N/A | Path not found or missing packageName parameter in the URL. |
+|       | |                                              | 500 Internal Service Error | N/A | Server execution error. |
 | POST  | launchAppStore        | {"packageName":"androidtv_app_package_name"} | 200 OK | | Success scenario. |
-|       |         | | 404 Not Found | N/A | Path not found or missing packageName parameter in the body |
-|       | | | 500 Internal Service Error | N/A | Server execution error. |
+|       |         |                                              | 404 Not Found | N/A | Path not found or missing packageName parameter in the body |
+|       | |                                              | 500 Internal Service Error | N/A | Server execution error. |
 
 <method type> <method name> <response code> <response body>
 

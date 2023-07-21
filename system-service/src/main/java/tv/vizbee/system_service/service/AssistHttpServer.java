@@ -25,7 +25,6 @@ public class AssistHttpServer extends NanoHTTPD {
 
     private final Context context;
 
-    // TODO: Need to optimize
     private Boolean isAppReadyForUse = true;
 
     public AssistHttpServer(Context applicationContext, int availablePort) {
