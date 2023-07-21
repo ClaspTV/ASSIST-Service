@@ -70,10 +70,12 @@ The System Service can be incorporated, built and immediately used in custom And
 
 You can see a version of the AOSP code changes with the ASSIST Service here: <TODO-XYZ-with-assist>
 
-**Step 1:** Add nanohttpd library 
+**Step 1:** Add `nanohttpd` library 
+
   Copy `nanohttpd` folder from `system-service.nanohttpd` module of ASSIST project to your AOSP File location `prebuilts/mic/common/`
 
-**Step 2:** Add Service files 
+**Step 2:** Add Service files  
+
   Copy the following classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`
   `AssistHttpServer.java`  
   `AssistService.java`  
@@ -161,4 +163,8 @@ File: `frameworks/base/core/api/current.txt`
 
 **Step 7:** Verify the System Service is running using Logs.
 
+```
+adb logcat -v color AssistServiceManager:V '*:S'
+
+```
 
