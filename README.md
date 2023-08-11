@@ -135,28 +135,26 @@ File: `frameworks/base/core/java/android/content/Context.java`
   ```
   
 File: `frameworks/base/services/java/com/android/server/SystemServer.java`
-  ```
+```
   private static final String ASSIST_SERVICE = "com.android.server.AssistService";
 
   //add the following to the `startBootstrapServices()` function
   
-  AssistService assistservice = null;
   try {
-      traceBeginAndSlog("AssistService");
-      assistservice = new AssistService(mSystemContext);
-      ServiceManager.addService(Context.ASSIST_SERVICE, assistservice);
-  } catch (Throwable e) {
-      Slog.e(TAG, "Starting AssistService failed!!! ", e);
-  }
-  traceEnd();
+      t.traceBegin("AssistService");
+      mSystemServiceManager.startService(AssistService.class);
+      } catch (Throwable e) {
+        Slog.e(TAG, "Starting AssistService failed!!! ", e);
+    }
+  t.traceEnd();
         
-  ```
+```
 
 File: `frameworks/base/core/api/current.txt`
   ```
-        public abstract class Context {
-          field public static final String ASSIST_SERVICE = "assist";
-        }
+    public abstract class Context {
+      field public static final String ASSIST_SERVICE = "assist";
+    }
   ```
 
 **Step 6:** Build the AOSP and run it.
@@ -164,7 +162,7 @@ File: `frameworks/base/core/api/current.txt`
 **Step 7:** Verify the System Service is running using Logs.
 
 ```
-adb logcat -v color AssistServiceManager:V '*:S'
+  adb logcat -v color AssistServiceManager:V '*:S'
 
 ```
 
