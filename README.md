@@ -76,7 +76,7 @@ You can see a version of the AOSP code changes with the ASSIST Service here: <TO
 
 **Step 2:** Add Service files  
 
-  Copy the following classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/core/java/android/app`
+  Copy the following classes from `system-service.service` module of ASSIST project to your AOSP File location:  `frameworks/base/services/core/java/com/android/server`
   `AssistHttpServer.java`  
   `AssistService.java`  
   `AssistServiceManager.java`  
