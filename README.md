@@ -165,4 +165,17 @@ File: `frameworks/base/core/api/current.txt`
   adb logcat -v color AssistServiceManager:V '*:S'
 
 ```
+# Testing
+
+You can test that your Android TV has the correct implementation of the ASSIST service using the following tests.
+
+## Discovery Test
+
+|Test| Discovery Test|
+|---|---|
+|Setup| Ensure your laptop or mobile phone and the Android TV are on the same Wifi network.|
+|Steps| From laptop, run a CLI command to discover bonjour services of type _vzb-assist._tcp. For example, on macOS, run `dns-sd -B _vzb-assist._tcp.` If testing from a mobile phone, you can use any bonjour discovery app such as https://apps.apple.com/de/app/discovery-dns-sd-browser/id305441017|
+|Result| Confirm that you are able to discover the Android TV|
+
+
 
