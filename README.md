@@ -177,5 +177,24 @@ You can test that your Android TV has the correct implementation of the ASSIST s
 |Steps| From laptop, run a CLI command to discover bonjour services of type _vzb-assist._tcp. For example, on macOS, run `dns-sd -B _vzb-assist._tcp.` If testing from a mobile phone, you can use any bonjour discovery app such as https://apps.apple.com/de/app/discovery-dns-sd-browser/id305441017|
 |Result| Confirm that you are able to discover the Android TV|
 
+## Mobile-to-TV Interaction Test
 
+1. Run the following command on macOS to list available instances of the service `dns-sd -B _vzb-assist._tcp.`.
+2. Replace {Instance_Name} with the actual instance name you want to investigate and run this command `dns-sd -L "{Instance_Name}" _vzb-assist._tcp local.` to get the `hostName:portNumber` information. 
+3. Finally, run the ping command using the hostname from the previous step to retrieve the IP address associated with the service `ping hostName`.
+  
+### App Status Test
 
+|Test| App Status Test|
+|---|---|
+|Setup| Ensure you are able to discover Android TV|
+|Steps| * Execute the CURL command from your laptop to get the status of the app.<br>  `curl ‘{Android_TV_IP}:{Port}/appInstallationStatus?packageName={App_Package}’.`<br> * Example: `curl ‘192.168.1.136:32819/appInstallationStatus?packageName=com.fng.foxnation’`<br>|
+|Result| Confirm that you get the status of the app.<br> Example: `{"state":"App Not Installed"}`|
+
+### Launch PlayStore Test
+
+|Test| Launch PlayStore Test|
+|---|---|
+|Setup| Ensure you are able to discover Android TV|
+|Steps| * Execute the CURL command from your laptop to open the Google Play Store page for a specific app.<br>  `curl -X POST -H "Content-Type: application/json" -d '{"packageName":{App_Package}}' {Android_TV_IP}:{Port}/launchPlayStore’.`<br> * Example: `curl -X POST -H "Content-Type: application/json" -d '{"packageName":"com.fng.foxnation"}' 192.168.1.136:40661/launchPlayStore`<br>|
+|Result| Confirm that the PlayStore page is launched for the specified app.<br> Example: `{"state":"Success"}`|
