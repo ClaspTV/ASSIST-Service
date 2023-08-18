@@ -167,34 +167,89 @@ File: `frameworks/base/core/api/current.txt`
 ```
 # Testing
 
-You can test that your Android TV has the correct implementation of the ASSIST service using the following tests.
+You can test that your Android TV has the correct implementation of the ASSIST service with very simple CLI commands.
 
-## Discovery Test
+## Assist Service Discovery Test
 
-|Test| Discovery Test|
-|---|---|
-|Setup| Ensure your laptop or mobile phone and the Android TV are on the same Wifi network.|
-|Steps| From laptop, run a CLI command to discover bonjour services of type _vzb-assist._tcp. For example, on macOS, run `dns-sd -B _vzb-assist._tcp.` If testing from a mobile phone, you can use any bonjour discovery app such as https://apps.apple.com/de/app/discovery-dns-sd-browser/id305441017|
-|Result| Confirm that you are able to discover the Android TV|
+* **Setup** - Ensure your laptop or mobile phone and the Android TV are on the same Wifi network.
+* **Steps**
+  * If testing from a laptop, run a CLI command to discover bonjour services of type _vzb-assist._tcp. For example, on macOS, run `dns-sd -B _vzb-assist._tcp.` You should see an output like below.
+ 
+```
+Browsing for _vzb-assist._tcp.
+DATE: ---Fri 18 Aug 2023---
+18:56:56.846  ...STARTING...
+Timestamp     A/R    Flags  if Domain               Service Type         Instance Name
+18:56:56.847  Add        2  14 local.               _vzb-assist._tcp.    Android TV Second Screen Install Service
+```
 
-## Mobile-to-TV Interaction Test
+  * If testing from a mobile phone, you can use any bonjour discovery app such as https://apps.apple.com/de/app/discovery-dns-sd-browser/id305441017
+* **Result** - Confirm that you are able to discover the ASSIST Service on the Android TV.
 
-1. Run the following command on macOS to list available instances of the service `dns-sd -B _vzb-assist._tcp.`.
-2. Replace {Instance_Name} with the actual instance name you want to investigate and run this command `dns-sd -L "{Instance_Name}" _vzb-assist._tcp local.` to get the `hostName:portNumber` information. 
-3. Finally, run the ping command using the hostname from the previous step to retrieve the IP address associated with the service `ping hostName`.
+## Assist Service Information Test
+
+* **Setup** - Ensure your laptop and the Android TV are on the same Wifi network.
+* **Steps**
+  *  Run the following command on macOS to list available instances of the ASSIST service `dns-sd -B _vzb-assist._tcp.` on your wifi.
+  *  Replace `$ASSIST_INSTANCE_NAME` with the actual instance name you want to investigate and run this command `dns-sd -L $ASSIST_INSTANCE_NAME _vzb-assist._tcp local.` to get the `hostName:portNumber` information of the instance. You should see an output like below.
+
+```
+Lookup Android TV Second Screen Install Service._vzb-assist._tcp.local.
+DATE: ---Fri 18 Aug 2023---
+18:57:13.259  ...STARTING...
+18:57:13.446  Android\032TV\032Second\032Screen\032Install\032Service._vzb-assist._tcp.local. can be reached at Android-2.local.:32789 (interface 14)
+```
   
-### App Status Test
+  *  In the above example, the `hostName:portNumber` is `Android-2.local.:32789`.
+  *  Finally, run the command `dns-sd -G v4 $HOST_NAME` where `$HOST_NAME` is the hostName found in the previous command to get the IPv4 address of the AndroidTV where the ASSIST service is running. You should see an output like below.
 
-|Test| App Status Test|
-|---|---|
-|Setup| Ensure you are able to discover Android TV|
-|Steps| * Execute the CURL command from your laptop to get the status of the app.<br>  `curl ‘{Android_TV_IP}:{Port}/appInstallationStatus?packageName={App_Package}’.`<br> * Example: `curl ‘192.168.1.136:32819/appInstallationStatus?packageName=com.fng.foxnation’`<br>|
-|Result| Confirm that you get the status of the app.<br> Example: `{"state":"App Not Installed"}`|
+```
+DATE: ---Fri 18 Aug 2023---
+20:03:38.527  ...STARTING...
+Timestamp     A/R    Flags if Hostname                               Address                                      TTL
+20:03:38.528  Add 40000002 14 Android-2.local.                       192.168.1.116                                120
+```
 
-### Launch PlayStore Test
+  *  In the above example, the Android TV IP address is `192.168.1.116` and the ASSIST service port is `32789`.
+  
+## App Install Status Test
 
-|Test| Launch PlayStore Test|
-|---|---|
-|Setup| Ensure you are able to discover Android TV|
-|Steps| * Execute the CURL command from your laptop to open the Google Play Store page for a specific app.<br>  `curl -X POST -H "Content-Type: application/json" -d '{"packageName":{App_Package}}' {Android_TV_IP}:{Port}/launchPlayStore’.`<br> * Example: `curl -X POST -H "Content-Type: application/json" -d '{"packageName":"com.fng.foxnation"}' 192.168.1.136:40661/launchPlayStore`<br>|
-|Result| Confirm that the PlayStore page is launched for the specified app.<br> Example: `{"state":"Success"}`|
+* **Setup**
+  * Ensure your laptop and the Android TV are on the same Wifi network.
+  * To execute this test, you need the `$ANDROID_TV_IP` and the `$ASSIST_SERVICE_PORT` from the previous ASSIST service information test.
+  * To execute this test, you'll also need the `$APP_PACKAGE_NAME` of an Android app such as `com.fng.foxnation` for the Fox Nation app.
+* **Steps**
+  *  Execute the following CURL command from your laptop to get the status of the app.
+
+```
+curl http://$ANDROID_TV_IP:$ASSIST_SERVICE_PORT/appInstallationStatus?packageName=$APP_PACKAGE_NAME
+```
+
+  *  Example: `curl http://192.168.1.136:32819/appInstallationStatus?packageName=com.fng.foxnation`. You should see an output like below.
+     
+```
+{"state":"App Not Installed"}
+```
+
+* **Result** -  Confirm that you get the correct status of the app.
+
+## Launch PlayStore for App Test
+
+* **Setup**
+  * Ensure your laptop and the Android TV are on the same Wifi network.
+  * To execute this test, you need the `$ANDROID_TV_IP` and the `$ASSIST_SERVICE_PORT` from the previous ASSIST service information test.
+  * To execute this test, you'll also need the `$APP_PACKAGE_NAME` of an Android app such as `com.fng.foxnation` for the Fox Nation app.
+* **Steps**
+  *  Execute the CURL command from your laptop to open the Google Play Store page on the Android TV for a specific app.
+
+```
+curl -X POST -H "Content-Type: application/json" -d '{"packageName":{$APP_PACKAGE_NAME}}' http://$ANDROID_TV_IP:$ASSIST_SERVICE_PORT/launchPlayStore’
+```
+
+  *  Example: `curl -X POST -H "Content-Type: application/json" -d '{"packageName":"com.fng.foxnation"}' http://192.168.1.136:40661/launchPlayStore`. You should see an output like below.
+     
+```
+{"state":"Success"}
+```
+
+* **Result** -  Confirm that Google Play Store is opened on the Android TV and deeplinked to the correct app page listing.
