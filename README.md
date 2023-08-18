@@ -169,7 +169,7 @@ File: `frameworks/base/core/api/current.txt`
 
 You can test that your Android TV has the correct implementation of the ASSIST service with very simple CLI commands.
 
-## Assist Service Discovery Test
+## ASSIST Service Discovery Test
 
 * **Setup** - Ensure your laptop or mobile phone and the Android TV are on the same Wifi network.
 * **Steps**
@@ -186,7 +186,7 @@ Timestamp     A/R    Flags  if Domain               Service Type         Instanc
   * If testing from a mobile phone, you can use any bonjour discovery app such as https://apps.apple.com/de/app/discovery-dns-sd-browser/id305441017
 * **Result** - Confirm that you are able to discover the ASSIST Service on the Android TV.
 
-## Assist Service Information Test
+## ASSIST Service Information Test
 
 * **Setup** - Ensure your laptop and the Android TV are on the same Wifi network.
 * **Steps**
