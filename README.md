@@ -190,8 +190,13 @@ Timestamp     A/R    Flags  if Domain               Service Type         Instanc
 
 * **Setup** - Ensure your laptop and the Android TV are on the same Wifi network.
 * **Steps**
-  *  Run the following command on macOS to list available instances of the ASSIST service `dns-sd -B _vzb-assist._tcp.` on your wifi.
-  *  Replace `$ASSIST_INSTANCE_NAME` with the actual instance name you want to investigate and run this command `dns-sd -L $ASSIST_INSTANCE_NAME _vzb-assist._tcp local.` to get the `hostName:portNumber` information of the instance. You should see an output like below.
+  *  Run the following command on macOS to list available instances of the ASSIST service on your wifi.
+
+```
+dns-sd -B _vzb-assist._tcp.
+```
+
+  *  Next, run this command `dns-sd -L $ASSIST_INSTANCE_NAME _vzb-assist._tcp local.` to get the `hostName:portNumber` information of the instance by replacing `$ASSIST_INSTANCE_NAME` with the actual instance name you want to investigate from the list of instances in the previous command. You should see an output like below.
 
 ```
 Lookup Android TV Second Screen Install Service._vzb-assist._tcp.local.
