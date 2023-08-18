@@ -39,7 +39,7 @@ Once discovered, the ASSIST service shares an HTTPS end-point which supports the
 
 <method type> <method name> <response code> <response body>
 
-# ASSIST Development & Deployment
+# ASSIST Development, Testing & Deployment
 
 ## Overview
 
