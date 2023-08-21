@@ -8,6 +8,10 @@ import android.net.nsd.NsdServiceInfo;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import android.content.pm.PackageManager;
+import android.bluetooth.BluetoothAdapter;
+import android.os.Build;
+import android.Manifest;
 
 import android.util.Slog;
 
@@ -41,7 +45,19 @@ public class AssistServiceManager {
         // 2. start the server
         Slog.i(LOG_TAG, "Starting AssistHttpServer on port " + availablePort);
         mAssistHttpServer = new AssistHttpServer(context, availablePort);
-        mAssistHttpServer.start();
+
+        if (mAssistHttpServer == null) {
+            Slog.e(LOG_TAG, "mAssistHttpServer is Null");
+        }
+
+        try {
+            mAssistHttpServer.start();
+        } catch (IOException e) {
+            Slog.e(LOG_TAG, "Failed to start AssistHttpServer " + e.getMessage());
+        }
+
+        boolean isServerRunning = mAssistHttpServer.isAlive();
+        Slog.e(LOG_TAG, "isAssistHttpServerRunning  = " + isServerRunning);
 
         //---
         // Register NsdService
@@ -49,13 +65,20 @@ public class AssistServiceManager {
 
         // 1. create the NsdServiceInfo
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(ASSIST_MDNS_SERVICE_NAME);
+        serviceInfo.setServiceName(getASSISTServiceName(context));
         serviceInfo.setServiceType(ASSIST_MDNS_SERVICE_TYPE);
         serviceInfo.setPort(availablePort);
+        Slog.i(LOG_TAG, "availablePort = " + availablePort);
 
         // 2. register the service
         mRegistrationListener = createRegistrationListener();
-        mNsdManager = (NsdManager) context.getSystemService(NSD_SERVICE);
+        if (context == null) {
+            Slog.e(LOG_TAG, "context is Null");
+        }
+        mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        if (mNsdManager == null) {
+            Slog.e(LOG_TAG, "NSDManager is Null");
+        }
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
 
@@ -64,7 +87,7 @@ public class AssistServiceManager {
         Slog.v(LOG_TAG, "unregisterService");
 
         // 1. stop the server
-        mAssistHttpServer. stop();
+        mAssistHttpServer.stop();
 
         // 2. un-register service
         mNsdManager.unregisterService(mRegistrationListener);
@@ -102,5 +125,21 @@ public class AssistServiceManager {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         }
+    }
+
+    private String getASSISTServiceName(Context context) {
+
+        String friendlyName = String.format("%s %s", Build.MANUFACTURER, Build.MODEL);
+        Slog.i(LOG_TAG, "ASSIST Service name using MANUFACTURER and MODEL " + friendlyName);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if ((null != context) && (context.checkSelfPermission(
+                    Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED)) {
+
+                Slog.i(LOG_TAG, "ASSIST Service name using BLUETOOTH " + friendlyName);
+                friendlyName = BluetoothAdapter.getDefaultAdapter().getName();
+            }
+        }
+        return friendlyName + "'s " + ASSIST_MDNS_SERVICE_NAME;
     }
 }

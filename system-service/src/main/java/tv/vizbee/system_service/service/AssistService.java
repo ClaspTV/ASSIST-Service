@@ -21,20 +21,21 @@ public class AssistService extends SystemService {
 
     @Override
     public void onStart() {
-        Slog.d(LOG_TAG, "Assist Service OnStart method Called");
-        mAssistServiceManager = new AssistServiceManager();
-        try {
-            mAssistServiceManager.registerService(mContext);
-        } catch (IOException e) {
-            Slog.e(LOG_TAG, "Failed to register service %s", e);
-        }
+        Slog.d(LOG_TAG, "Assist service onStart method called");
     }
 
     @Override
     public void onBootPhase(int phase) {
-        Slog.d(LOG_TAG, "onBootPhase called");
-        if (phase == PHASE_ACTIVITY_MANAGER_READY) {
-            Slog.d(LOG_TAG, "PHASE_ACTIVITY_MANAGER_READY");
+        Slog.d(LOG_TAG, "Assist service onBootPhase called");
+        if (phase == PHASE_BOOT_COMPLETED) {
+            Slog.d(LOG_TAG, "Assist service PHASE_BOOT_COMPLETED");
+            mAssistServiceManager = new AssistServiceManager();
+            try {
+                mAssistServiceManager.registerService(mContext);
+                Slog.d(LOG_TAG, "Successfully registered Assist service");
+            } catch (IOException e) {
+                Slog.e(LOG_TAG, "Failed to register Assist service %s", e);
+            }
         }
     }
 
