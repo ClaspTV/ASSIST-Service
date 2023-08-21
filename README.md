@@ -135,16 +135,17 @@ File: `frameworks/base/core/java/android/content/Context.java`
   ```
   
 File: `frameworks/base/services/java/com/android/server/SystemServer.java`
-```
-  private static final String ASSIST_SERVICE = "com.android.server.AssistService";
+**VERY IMPORTANT**
+1. Add the following to the `startOtherServices()` function.
+2. Add the AssistService at the end (after all the existing services) in `startOtherServices()` function.
 
-  //add the following to the `startBootstrapServices()` function
+```
   
   try {
       t.traceBegin("AssistService");
       mSystemServiceManager.startService(AssistService.class);
       } catch (Throwable e) {
-        Slog.e(TAG, "Starting AssistService failed!!! ", e);
+        Slog.e(TAG, "Starting AssistService failed", e);
     }
   t.traceEnd();
         
