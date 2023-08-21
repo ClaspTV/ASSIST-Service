@@ -2,9 +2,14 @@ package tv.vizbee.assist;
 
 import static android.content.Context.NSD_SERVICE;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.os.Build;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -16,7 +21,7 @@ public class AssistServiceManager {
     private static final String LOG_TAG = AssistServiceManager.class.getSimpleName();
 
     private static final String ASSIST_MDNS_SERVICE_TYPE = "_vzb-assist._tcp.";
-    private static final String ASSIST_MDNS_SERVICE_NAME = "Android TV Second Screen Install Service";
+    private static final String ASSIST_MDNS_SERVICE_NAME = "ASSIST Service";
 
     private AssistHttpServer mAssistHttpServer;
 
@@ -49,7 +54,7 @@ public class AssistServiceManager {
 
         // 1. create the NsdServiceInfo
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(ASSIST_MDNS_SERVICE_NAME);
+        serviceInfo.setServiceName(getASSISTServiceName(context));
         serviceInfo.setServiceType(ASSIST_MDNS_SERVICE_TYPE);
         serviceInfo.setPort(availablePort);
 
@@ -98,9 +103,30 @@ public class AssistServiceManager {
         };
     }
 
-    public static int getAvailablePort() throws IOException {
+    //--------
+    // Helper Methods
+    //--------
+
+    private int getAvailablePort() throws IOException {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private String getASSISTServiceName(Context context) {
+
+        String friendlyName = String.format("%s %s", Build.MANUFACTURER, Build.MODEL);
+        Logger.i(LOG_TAG, "ASSIST Service name using MANUFACTURER and MODEL " + friendlyName);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if ((null != context) && (context.checkSelfPermission(
+                    Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED)) {
+
+                Logger.i(LOG_TAG, "ASSIST Service name using BLUETOOTH " + friendlyName);
+                friendlyName = BluetoothAdapter.getDefaultAdapter().getName();
+            }
+        }
+        return friendlyName + "'s " + ASSIST_MDNS_SERVICE_NAME;
     }
 }

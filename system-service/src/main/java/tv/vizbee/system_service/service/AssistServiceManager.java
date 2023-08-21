@@ -20,7 +20,7 @@ public class AssistServiceManager {
     private static final String LOG_TAG = AssistServiceManager.class.getSimpleName();
 
     private static final String ASSIST_MDNS_SERVICE_TYPE = "_vzb-assist._tcp.";
-    private static final String ASSIST_MDNS_SERVICE_NAME = "Android TV Second Screen Install Service";
+    private static final String ASSIST_MDNS_SERVICE_NAME = "ASSIST Service";
 
     private AssistHttpServer mAssistHttpServer;
 
@@ -121,7 +121,11 @@ public class AssistServiceManager {
         };
     }
 
-    public static int getAvailablePort() throws IOException {
+    //--------
+    // Helper Methods
+    //--------
+
+    private int getAvailablePort() throws IOException {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         }
