@@ -111,33 +111,10 @@ File: `frameworks/base/core/res`
 
 **Step 5:** Modify the following files as specified below to register the AssistService as as System Service  
   
-File: `frameworks/base/core/java/android/content/Context.java` 
-```
-  // Add ASSIST_SEVICE
-  
-  @StringDef(
-    suffix = {
-      "_SERVICE"
-    }, 
-    value = {
-      ASSIST_SERVICE,
-      ACCOUNT_SERVICE,
-      ACTIVITY_SERVICE,
-      ALARM_SERVICE,
-      NOTIFICATION_SERVICE,
-      ACCESSIBILITY_SERVICE,
-      CAPTIONING_SERVICE,
-    }
-  )
-  
-  public static final String ASSIST_SERVICE = "assist"; 
-
-  ```
-  
-File: `frameworks/base/services/java/com/android/server/SystemServer.java`
+File: `frameworks/base/services/java/com/android/server/SystemServer.java`<br><br>
 **VERY IMPORTANT**
 1. Add the following to the `startOtherServices()` function.
-2. Add the AssistService at the end (after all the existing services) in `startOtherServices()` function.
+2. Add the AssistService at the end of all the existing services in `startOtherServices()` function.
 
 ```
   
