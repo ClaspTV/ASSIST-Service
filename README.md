@@ -231,7 +231,7 @@ Timestamp     A/R    Flags if Hostname                               Address    
 curl http://$ANDROID_TV_IP:$ASSIST_SERVICE_PORT/appInstallationStatus?packageName=$APP_PACKAGE_NAME
 ```
 
-  *  Example: `curl http://192.168.1.136:32819/appInstallationStatus?packageName=com.fng.foxnation`. You should see an output like below.
+  *  Example: `curl "http://192.168.1.136:32819/appInstallationStatus?packageName=com.fng.foxnation"`. You should see an output like below.
      
 ```
 {"state":"App Not Installed"}
@@ -252,7 +252,7 @@ curl http://$ANDROID_TV_IP:$ASSIST_SERVICE_PORT/appInstallationStatus?packageNam
 curl -X POST -H "Content-Type: application/json" -d '{"packageName":{$APP_PACKAGE_NAME}}' http://$ANDROID_TV_IP:$ASSIST_SERVICE_PORT/launchPlayStore’
 ```
 
-  *  Example: `curl -X POST -H "Content-Type: application/json" -d '{"packageName":"com.fng.foxnation"}' http://192.168.1.136:40661/launchPlayStore`. You should see an output like below.
+  *  Example: `curl -X POST -H "Content-Type: application/json" -d '{"packageName":"com.fng.foxnation"}' "http://192.168.1.136:40661/launchPlayStore"`. You should see an output like below.
      
 ```
 {"state":"Success"}
