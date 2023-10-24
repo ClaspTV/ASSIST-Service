@@ -1,6 +1,6 @@
 # AndroidTV Second Screen Install (ASSIST) Service
 
-This repository is an open source implementation of the AndroidTV Second Screen Install (ASSIST) Service.
+This repository is Vizbee's implementation of the AndroidTV Second Screen Install (ASSIST) Service.
 
 # Overview
 
